@@ -28,9 +28,17 @@ const renderBulletItems = (item) => {
     : typeof rawDesc === "string"
       ? rawDesc.split(/\\n|\n/)
       : [];
+
   return lines
     .filter((line) => line && line.toString().trim())
-    .map((line) => `    \\resumeItem{${escapeLatex(line.toString().trim())}}`)
+    .map((line) => {
+      // This regex cleans up any existing "-" or "•" to prevent double-bullet issues
+      const cleanLine = line
+        .toString()
+        .trim()
+        .replace(/^[-•]\s*/, "");
+      return `    \\resumeItem{${escapeLatex(cleanLine)}}`;
+    })
     .join("\n");
 };
 
@@ -69,7 +77,7 @@ export function parseResumeToLaTeX(data) {
   \\vspace{-4pt}\\scshape\\raggedright\\large
 }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
-\\newcommand{\\resumeItem}[1]{\\item\\small{{#1 \\vspace{-2pt}}}}
+\\newcommand{\\resumeItem}[1]{\\item #1}
 \\newcommand{\\resumeSubheading}[4]{
   \\vspace{-2pt}\\item
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
@@ -116,6 +124,7 @@ ${(data.projects || []).map((proj) => `  \\resumeProjectHeading{\\textbf{${escap
       ${s.languages ? `\\textbf{Languages}{: ${escapeLatex(s.languages)}} \\\\` : ""}
       ${s.libraries ? `\\textbf{Frameworks \\& Libraries}{: ${escapeLatex(s.libraries)}} \\\\` : ""}
       ${s.tools ? `\\textbf{Tools \\& Systems}{: ${escapeLatex(s.tools)}}` : ""}
+      ${s.domain ? `\\textbf{Domain Specialization}{: ${escapeLatex(s.domain)}}` : ""}
     }}
 \\end{itemize}
 
