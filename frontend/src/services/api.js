@@ -1,5 +1,8 @@
 // src/services/api.js
-const BASE_URL = "https://texify-backend.onrender.com/api";
+
+// Vite checks your environment variables automatically.
+// It will use Render on production, and drop back to your local server when coding at home!
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export const api = {
   resumes: {
@@ -8,7 +11,7 @@ export const api = {
       const res = await fetch(`${BASE_URL}/resumes`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        credentials: "include", // Essential for forwarding HttpOnly session cookies
       });
       if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
       return res.json();
