@@ -37,7 +37,10 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID",
       clientSecret:
         process.env.GOOGLE_CLIENT_SECRET || "PLACEHOLDER_CLIENT_SECRET",
-      callbackURL: `${process.env.BACKEND_URL || "http://localhost:5000"}/api/auth/google/callback`,
+      // Force a relative path. Passport will automatically capture the exact live domain it runs on!
+      callbackURL: "/api/auth/google/callback",
+      // Crucial: Tells Passport to trust Render's automated HTTPS reverse-proxy headers
+      proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -69,7 +72,6 @@ passport.use(
             VALUES ($1, $2) 
             RETURNING id, email, created_at;
           `;
-          // Explicitly mark password hash fields as null or randomized strings for federated external OAuth records
           const result = await db.query(insertQuery, [
             email.toLowerCase(),
             "OAUTH_FEDERATED_ACCOUNT",
