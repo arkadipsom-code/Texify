@@ -12,12 +12,16 @@ const TARGET_DOMAIN = "@students.iiests.ac.in";
 const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
   const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "24h" });
 
-  const isProduction = process.env.NODE_ENV === "production";
+  // Check if we are running live on Render or on localhost
+  const isRenderProduction =
+    process.env.BACKEND_URL && process.env.BACKEND_URL.includes("onrender.com");
 
   const cookieOptions = {
     httpOnly: true,
-    secure: isProduction, // true in production, false in local dev
-    sameSite: isProduction ? "none" : "lax", // "none" for cross-domain prod, "lax" for local dev
+    // Force secure over HTTPS on Render, allow false for standard local HTTP testing
+    secure: isRenderProduction ? true : false,
+    // Cross-site contexts must use 'none'. Localhost development should use 'lax'.
+    sameSite: isRenderProduction ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
   };
 
@@ -197,16 +201,16 @@ const handleGoogleSuccess = (req, res) => {
   const user = req.user;
   const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "24h" });
 
-  const isProduction = process.env.NODE_ENV === "production";
+  const isRenderProduction =
+    process.env.BACKEND_URL && process.env.BACKEND_URL.includes("onrender.com");
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    secure: isRenderProduction ? true : false,
+    sameSite: isRenderProduction ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
   });
 
-  // Dynamically targets Vercel in production or Localhost during manual development
   res.redirect(
     `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
   );
