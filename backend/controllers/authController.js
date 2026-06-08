@@ -52,7 +52,7 @@ passport.use(
           });
         }
 
-        // 🚀 ENFORCED INSTITUTIONAL DOMAIN BOUNDARY CHECK
+        // ENFORCED INSTITUTIONAL DOMAIN BOUNDARY CHECK
         if (!email.toLowerCase().endsWith(TARGET_DOMAIN)) {
           return done(null, false, {
             message: `Access denied. System validation requires an official ${TARGET_DOMAIN} ID.`,
