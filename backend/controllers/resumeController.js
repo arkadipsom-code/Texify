@@ -6,15 +6,42 @@ const { exec } = require("child_process");
 // Fetch high-level resume listings for the dashboard grid view
 const getUserResumes = async (req, res) => {
   const userId = req.user.id;
+
+  if (!userId) {
+    return res
+      .status(401)
+      .json({ error: "Unauthorized. Valid user session ID missing." });
+  }
+
   try {
-    const result = await db.query(
-      "SELECT * FROM resumes WHERE user_id = $1 ORDER BY updated_at DESC",
-      [userId],
-    );
-    res.status(200).json(result.rows);
+    // 🛠️ SAFE FALLBACK: If updated_at column or sorting breaks due to PostgreSQL schema casing,
+    // we query directly by id to prevent the dashboard from throwing sync-errors.
+    let result;
+    try {
+      result = await db.query(
+        "SELECT * FROM resumes WHERE user_id = $1 ORDER BY updated_at DESC",
+        [userId],
+      );
+    } catch (schemaError) {
+      console.warn(
+        "Notice: Falling back to id-sorting due to schema properties:",
+        schemaError.message,
+      );
+      result = await db.query(
+        "SELECT * FROM resumes WHERE user_id = $1 ORDER BY id DESC",
+        [userId],
+      );
+    }
+
+    // Ensure we always return an array, even if empty, so the frontend .map() loop doesn't crash
+    return res.status(200).json(result.rows || []);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to retrieve resumes." });
+    console.error("Critical getUserResumes Controller Error:", err);
+    return res
+      .status(500)
+      .json({
+        error: "Failed to retrieve resumes from persistent database storage.",
+      });
   }
 };
 
@@ -400,12 +427,10 @@ const compileLatex = (req, res) => {
         stderr || stdout,
       );
       cleanupFiles(uniqueId, outputDir);
-      return res
-        .status(500)
-        .json({
-          error:
-            "LaTeX compilation failed. Please verify equation formatting syntax.",
-        });
+      return res.status(500).json({
+        error:
+          "LaTeX compilation failed. Please verify equation formatting syntax.",
+      });
     }
 
     res.sendFile(pdfFilePath, {}, () => {
