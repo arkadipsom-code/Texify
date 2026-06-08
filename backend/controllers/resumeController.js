@@ -3,6 +3,16 @@ const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 
+// Helper function to escape special LaTeX characters to prevent parser drops
+const escapeLatexCharacters = (text) => {
+  if (typeof text !== "string") return text || "";
+  return text
+    .replace(/\\/g, "\\textbackslash{}") // Must escape backslash first
+    .replace(/([&%$#_{}])/g, "\\$1") // Escapes &, %, $, #, _, {, }
+    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/\^/g, "\\textasciicircum{}");
+};
+
 // Fetch high-level resume listings for the dashboard grid view
 const getUserResumes = async (req, res) => {
   const userId = req.user.id;
@@ -14,8 +24,6 @@ const getUserResumes = async (req, res) => {
   }
 
   try {
-    // 🛠️ SAFE FALLBACK: If updated_at column or sorting breaks due to PostgreSQL schema casing,
-    // we query directly by id to prevent the dashboard from throwing sync-errors.
     let result;
     try {
       result = await db.query(
@@ -33,15 +41,12 @@ const getUserResumes = async (req, res) => {
       );
     }
 
-    // Ensure we always return an array, even if empty, so the frontend .map() loop doesn't crash
     return res.status(200).json(result.rows || []);
   } catch (err) {
     console.error("Critical getUserResumes Controller Error:", err);
-    return res
-      .status(500)
-      .json({
-        error: "Failed to retrieve resumes from persistent database storage.",
-      });
+    return res.status(500).json({
+      error: "Failed to retrieve resumes from persistent database storage.",
+    });
   }
 };
 
@@ -62,7 +67,6 @@ const getResumeById = async (req, res) => {
 
     const resume = resumeResult.rows[0];
 
-    // Parallel extraction of child relations
     const [eduRes, expRes, projRes, skillRes, achRes] = await Promise.all([
       db.query("SELECT * FROM education WHERE resume_id = $1", [id]),
       db.query("SELECT * FROM experience WHERE resume_id = $1", [id]),
@@ -71,7 +75,6 @@ const getResumeById = async (req, res) => {
       db.query("SELECT * FROM achievements WHERE resume_id = $1", [id]),
     ]);
 
-    // Format payload properties to resolve naming mismatches between wizard data states and schema columns
     const structuredResume = {
       id: resume.id,
       resume_name: resume.resume_name,
@@ -134,7 +137,6 @@ const createResume = async (req, res) => {
 
     await db.query("BEGIN");
 
-    // Root metadata entry
     const insertResumeQuery = `
       INSERT INTO resumes (user_id, resume_name, name, phone, email, linkedin, github)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -153,7 +155,6 @@ const createResume = async (req, res) => {
     const resumeResult = await db.query(insertResumeQuery, resumeValues);
     const resumeId = resumeResult.rows[0].id;
 
-    // Relational entries processing
     if (education && Array.isArray(education)) {
       for (const edu of education) {
         await db.query(
@@ -274,7 +275,6 @@ const updateResume = async (req, res) => {
       userId,
     ]);
 
-    // Resync child dependencies using data wiping strategy
     await db.query("DELETE FROM education WHERE resume_id = $1", [id]);
     if (education && Array.isArray(education)) {
       for (const edu of education) {
@@ -353,7 +353,6 @@ const updateResume = async (req, res) => {
   }
 };
 
-// Permanent cascading document removal routine
 const deleteResume = async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -372,7 +371,6 @@ const deleteResume = async (req, res) => {
 
     await db.query("BEGIN");
 
-    // Delete isolated records manually to ensure consistent reference clearing
     await db.query("DELETE FROM education WHERE resume_id = $1", [id]);
     await db.query("DELETE FROM experience WHERE resume_id = $1", [id]);
     await db.query("DELETE FROM projects WHERE resume_id = $1", [id]);
@@ -402,7 +400,6 @@ const compileLatex = (req, res) => {
 
   const uniqueId = `resume_${Date.now()}`;
 
-  // SAFE ROUTING: Uses OS-level /tmp for cloud production Linux, falls back to your local temp folder for Windows development
   const outputDir =
     process.env.NODE_ENV === "production"
       ? "/tmp"
@@ -416,8 +413,6 @@ const compileLatex = (req, res) => {
 
   fs.writeFileSync(texFilePath, latexCode, "utf8");
 
-  // OPTIMIZED: Changed interaction mode to batchmode for production safety.
-  // If there's a minor typo in a user's inputs, batchmode spits out whatever it can compile without locking the server.
   const command = `pdflatex -interaction=batchmode -output-directory="${outputDir}" "${texFilePath}"`;
 
   exec(command, (error, stdout, stderr) => {
@@ -429,7 +424,7 @@ const compileLatex = (req, res) => {
       cleanupFiles(uniqueId, outputDir);
       return res.status(500).json({
         error:
-          "LaTeX compilation failed. Please verify equation formatting syntax.",
+          "LaTeX compilation dropped. Render server environment missing 'pdflatex' binary dependencies.",
       });
     }
 
@@ -439,7 +434,6 @@ const compileLatex = (req, res) => {
   });
 };
 
-// Helper function to remove compilation metadata artifacts from disk storage
 const cleanupFiles = (filePrefix, dir) => {
   const extensions = [".tex", ".pdf", ".log", ".aux", ".out"];
   extensions.forEach((ext) => {
@@ -457,4 +451,5 @@ module.exports = {
   updateResume,
   deleteResume,
   compileLatex,
+  escapeLatexCharacters, // Exported formatting utility for structural assembly
 };

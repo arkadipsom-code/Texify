@@ -3,18 +3,24 @@
  */
 const escapeLatex = (text) => {
   if (!text) return "";
-  return text
-    .toString()
-    .replace(/\\/g, "\\\\")
-    .replace(/&/g, "\\&")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/_/g, "\\_")
-    .replace(/{/g, "\\{")
-    .replace(/}/g, "\\}")
-    .replace(/~/g, "\\textasciitilde{}")
-    .replace(/\^/g, "\\textasciicircum{}");
+  return (
+    text
+      .toString()
+      // 1. Escape backslashes first safely so we don't transform subsequent overrides
+      .replace(/\\/g, "\\textbackslash{}")
+      // 2. Safely escape core syntax control characters
+      .replace(/&/g, "\\&")
+      .replace(/%/g, "\\%")
+      .replace(/\$/g, "\\$")
+      .replace(/#/g, "\\#")
+      .replace(/_/g, "\\_")
+      .replace(/{/g, "\\{")
+      .replace(/}/g, "\\}")
+      // 3. Handle structural typography marks
+      .replace(/~/g, "\\textasciitilde{}")
+      .replace(/\^/g, "\\textasciicircum{}")
+      .replace(/\|/g, "\\textbar{}")
+  ); // Safely sanitize any manual user pipe entries
 };
 
 /**
@@ -97,7 +103,7 @@ export function parseResumeToLaTeX(data) {
 % Section formatting macro - Bold, Large, with crisp divider lines
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
-}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
 
 \\pdfgentounicode=1
 
@@ -146,10 +152,10 @@ export function parseResumeToLaTeX(data) {
 \\begin{center}
     \\textbf{\\Huge \\scshape ${escapeLatex(uppercaseName)}} \\\\ \\vspace{1pt}
     \\small 
-    ${p.phone ? `${escapeLatex(p.phone)} $|$ ` : ""}
-    ${p.email ? `\\href{mailto:${p.email}}{\\underline{${escapeLatex(p.email)}}} $|$ ` : ""}
+    ${p.phone ? `${escapeLatex(p.phone)} \\textbar{} ` : ""}
+    ${p.email ? `\\href{mailto:${p.email}}{\\underline{${escapeLatex(p.email)}}} \\textbar{} ` : ""}
     ${p.linkedin ? `\\href{${p.linkedin}}{\\underline{linkedin.com/in/${escapeLatex(p.linkedin.split("/in/")[1] || "linkedin")}}}` : ""}
-    ${p.github ? `$|$ \\href{${p.github}}{\\underline{github.com/${escapeLatex(p.github.split("/").pop() || "github")}}}` : ""}
+    ${p.github ? ` \\textbar{} \\href{${p.github}}{\\underline{github.com/${escapeLatex(p.github.split("/").pop() || "github")}}}` : ""}
 \\end{center}
 `;
 
@@ -203,7 +209,7 @@ export function parseResumeToLaTeX(data) {
 
       const headingContent =
         `\\textbf{${escapeLatex(titleStr)}}` +
-        (techStr ? ` $|$ \\emph{${escapeLatex(techStr)}}` : "");
+        (techStr ? ` \\textbar{} \\emph{${escapeLatex(techStr)}}` : "");
       latex += `  \\resumeProjectHeading
     {${headingContent}}{${escapeLatex(yearStr)}}\n`;
 
