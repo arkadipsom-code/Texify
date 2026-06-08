@@ -101,7 +101,7 @@ export function parseResumeToLaTeX(data) {
 \\raggedright
 \\setlength{\\tabcolsep}{0in}
 
-% Section formatting
+% Section formatting - Bold, Large, with divider line
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
 }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
