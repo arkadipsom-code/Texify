@@ -8,15 +8,16 @@ const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 const TARGET_DOMAIN = "@students.iiests.ac.in";
 
-// Helper logic to sign and push tokens down into an encrypted HttpOnly cookie container
 const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
   const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "24h" });
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    // maxAge: 24 * 60 * 60 * 1000,
+    secure: isProduction, // Must be true if sameSite is "none"
+    sameSite: isProduction ? "none" : "lax", // "none" allows Vercel -> Render communication
+    maxAge: 24 * 60 * 60 * 1000,
   };
 
   res.cookie("token", token, cookieOptions);
@@ -26,6 +27,10 @@ const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
     user: userPayload,
   });
 };
+return res.status(statusCode).json({
+  message,
+  user: userPayload,
+});
 
 // PASSPORT GOOGLE STRATEGY INITIALIZATION
 
