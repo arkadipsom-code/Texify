@@ -195,19 +195,18 @@ const loginUser = async (req, res) => {
 // 3. SUCCESSFUL GOOGLE OAUTH REDIRECT CALLBACK RESOLVER
 
 const handleGoogleSuccess = (req, res) => {
-  // Passport passes verified profile database user configurations inside req.user automatically
   const user = req.user;
-
   const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "24h" });
+
+  const isProduction = process.env.NODE_ENV === "production";
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
   });
 
-  // Redirect the main viewport safely straight back into the live frontend app ecosystem dashboard
   res.redirect(
     `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
   );
@@ -238,10 +237,12 @@ const verifyMe = async (req, res) => {
 // 5. SECURE SESSION TERMINATION (LOGOUT)
 
 const logoutUser = (req, res) => {
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
   });
   res.status(200).json({ message: "Logged out successfully." });
 };
