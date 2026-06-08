@@ -97,7 +97,11 @@ export function BuilderPage() {
     try {
       await handleSaveToDatabase();
       const rawLatexString = parseResumeToLaTeX(resumeData);
-      const response = await fetch('http://localhost:5000/api/resumes/compile', {
+      
+      // ✅ Fixed: Dynamically fall back to local only if an environment config doesn't exist
+      const API_ROOT = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      const response = await fetch(`${API_ROOT}/api/resumes/compile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,6 +110,7 @@ export function BuilderPage() {
         credentials: "include",
         body: JSON.stringify({ latexCode: rawLatexString }),
       });
+      
       if (!response.ok) throw new Error();
       const pdfBlob = await response.blob();
       const viewUrl = window.URL.createObjectURL(pdfBlob);
