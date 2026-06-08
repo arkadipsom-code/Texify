@@ -451,5 +451,5 @@ module.exports = {
   updateResume,
   deleteResume,
   compileLatex,
-  escapeLatexCharacters, // Exported formatting utility for structural assembly
+  escapeLatexCharacters,
 };
