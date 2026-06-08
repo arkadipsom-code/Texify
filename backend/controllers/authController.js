@@ -15,8 +15,8 @@ const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
 
   const cookieOptions = {
     httpOnly: true,
-    secure: isProduction, // Must be true if sameSite is "none"
-    sameSite: isProduction ? "none" : "lax", // "none" allows Vercel -> Render communication
+    secure: isProduction, // true in production, false in local dev
+    sameSite: isProduction ? "none" : "lax", // "none" for cross-domain prod, "lax" for local dev
     maxAge: 24 * 60 * 60 * 1000,
   };
 
@@ -27,6 +27,7 @@ const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
     user: userPayload,
   });
 };
+
 return res.status(statusCode).json({
   message,
   user: userPayload,
