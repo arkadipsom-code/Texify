@@ -1,0 +1,11 @@
+# Ignore local environment secrets
+.env
+
+# Ignore heavy dependencies
+node_modules/
+
+# Ignore temporary compilation debris
+temp/
+*.log
+*.pdf
+*.tex
