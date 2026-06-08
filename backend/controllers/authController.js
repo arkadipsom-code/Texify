@@ -204,6 +204,7 @@ const handleGoogleSuccess = (req, res) => {
     maxAge: 24 * 60 * 60 * 1000,
   });
 
+  // Dynamically targets Vercel in production or Localhost during manual development
   res.redirect(
     `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
   );
