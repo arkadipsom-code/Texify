@@ -13,10 +13,10 @@ const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
   const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "24h" });
 
   const cookieOptions = {
-    httpOnly: true, // Complete isolation from malicious frontend JavaScript context injection (XSS defense)
-    secure: process.env.NODE_ENV === "production", // Transmit strictly over HTTPS connections in production
-    sameSite: "strict", // Prevent cross-site request forgery attacks (CSRF defense)
-    // maxAge: 24 * 60 * 60 * 1000, // 24 Hours lifetime alignment
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    // maxAge: 24 * 60 * 60 * 1000,
   };
 
   res.cookie("token", token, cookieOptions);
@@ -27,9 +27,8 @@ const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
   });
 };
 
-// ==========================================
 // PASSPORT GOOGLE STRATEGY INITIALIZATION
-// ==========================================
+
 passport.use(
   new GoogleStrategy(
     {
@@ -86,9 +85,8 @@ passport.use(
   ),
 );
 
-// ==========================================
 // 1. USER REGISTRATION (SIGN UP)
-// ==========================================
+
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -145,9 +143,8 @@ const registerUser = async (req, res) => {
   }
 };
 
-// ==========================================
 // 2. USER LOGIN (SIGN IN)
-// ==========================================
+
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -190,9 +187,8 @@ const loginUser = async (req, res) => {
   }
 };
 
-// ==========================================
 // 3. SUCCESSFUL GOOGLE OAUTH REDIRECT CALLBACK RESOLVER
-// ==========================================
+
 const handleGoogleSuccess = (req, res) => {
   // Passport passes verified profile database user configurations inside req.user automatically
   const user = req.user;
@@ -212,9 +208,8 @@ const handleGoogleSuccess = (req, res) => {
   );
 };
 
-// ==========================================
 // 4. VERIFY SESSION USER PROFILE
-// ==========================================
+
 const verifyMe = async (req, res) => {
   try {
     const result = await db.query(
@@ -235,9 +230,8 @@ const verifyMe = async (req, res) => {
   }
 };
 
-// ==========================================
 // 5. SECURE SESSION TERMINATION (LOGOUT)
-// ==========================================
+
 const logoutUser = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
