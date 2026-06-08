@@ -8,32 +8,28 @@ const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 const TARGET_DOMAIN = "@students.iiests.ac.in";
 
-// Helper logic to sign and push tokens down into an encrypted HttpOnly cookie container
 const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
   const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "24h" });
 
-  // Check if we are running live on Render or on localhost
   const isRenderProduction =
     process.env.BACKEND_URL && process.env.BACKEND_URL.includes("onrender.com");
 
   const cookieOptions = {
     httpOnly: true,
-    // Force secure over HTTPS on Render, allow false for standard local HTTP testing
     secure: isRenderProduction ? true : false,
-    // Cross-site contexts must use 'none'. Localhost development should use 'lax'.
     sameSite: isRenderProduction ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000,
   };
 
   res.cookie("token", token, cookieOptions);
 
+  // Added token directly to the JSON response body
   return res.status(statusCode).json({
     message,
+    token,
     user: userPayload,
   });
 };
-
-// PASSPORT GOOGLE STRATEGY INITIALIZATION
 
 passport.use(
   new GoogleStrategy(
@@ -41,9 +37,7 @@ passport.use(
       clientID: process.env.GOOGLE_CLIENT_ID || "PLACEHOLDER_CLIENT_ID",
       clientSecret:
         process.env.GOOGLE_CLIENT_SECRET || "PLACEHOLDER_CLIENT_SECRET",
-      // Force a relative path. Passport will automatically capture the exact live domain it runs on!
       callbackURL: "/api/auth/google/callback",
-      // Crucial: Tells Passport to trust Render's automated HTTPS reverse-proxy headers
       proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
@@ -56,21 +50,18 @@ passport.use(
           });
         }
 
-        // ENFORCED INSTITUTIONAL DOMAIN BOUNDARY CHECK
         if (!email.toLowerCase().endsWith(TARGET_DOMAIN)) {
           return done(null, false, {
             message: `Access denied. System validation requires an official ${TARGET_DOMAIN} ID.`,
           });
         }
 
-        // Search for an existing record matching this verified address
         let userCheck = await db.query("SELECT * FROM users WHERE email = $1", [
           email.toLowerCase(),
         ]);
         let user;
 
         if (userCheck.rows.length === 0) {
-          // Provision a secure row profile seamlessly if it is their first time signing in
           const insertQuery = `
             INSERT INTO users (email, password_hash) 
             VALUES ($1, $2) 
@@ -92,8 +83,6 @@ passport.use(
     },
   ),
 );
-
-// 1. USER REGISTRATION (SIGN UP)
 
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
@@ -133,7 +122,6 @@ const registerUser = async (req, res) => {
     ]);
     const newUser = result.rows[0];
 
-    // Deliver authentication validation down through secure cookies instead of open json parameters
     return sendTokenCookie(
       newUser.id,
       res,
@@ -150,8 +138,6 @@ const registerUser = async (req, res) => {
     res.status(500).json({ error: "Internal server error." });
   }
 };
-
-// 2. USER LOGIN (SIGN IN)
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -172,7 +158,6 @@ const loginUser = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Catch situations where federated OAuth profile users attempt legacy manual text password forms
     if (user.password_hash === "OAUTH_FEDERATED_ACCOUNT") {
       return res.status(401).json({
         error: "Please sign in using your official Student Google ID button.",
@@ -195,8 +180,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// 3. SUCCESSFUL GOOGLE OAUTH REDIRECT CALLBACK RESOLVER
-
 const handleGoogleSuccess = (req, res) => {
   const user = req.user;
   const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "24h" });
@@ -211,12 +194,10 @@ const handleGoogleSuccess = (req, res) => {
     maxAge: 24 * 60 * 60 * 1000,
   });
 
-  res.redirect(
-    `${process.env.FRONTEND_URL || "http://localhost:5173"}/dashboard`,
-  );
+  // Appends token as query parameter so frontend dashboard can catch it on cross-domain callback redirects
+  const frontendBaseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  res.redirect(`${frontendBaseUrl}/dashboard?token=${token}`);
 };
-
-// 4. VERIFY SESSION USER PROFILE
 
 const verifyMe = async (req, res) => {
   try {
@@ -237,8 +218,6 @@ const verifyMe = async (req, res) => {
       .json({ error: "Internal server error during session recovery." });
   }
 };
-
-// 5. SECURE SESSION TERMINATION (LOGOUT)
 
 const logoutUser = (req, res) => {
   const isProduction = process.env.NODE_ENV === "production";
