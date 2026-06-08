@@ -98,16 +98,17 @@ export function BuilderPage() {
       await handleSaveToDatabase();
       const rawLatexString = parseResumeToLaTeX(resumeData);
       
-      // ✅ Fixed: Dynamically fall back to local only if an environment config doesn't exist
       const API_ROOT = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      
+      // ✅ FIX: Read 'texify_token' instead of 'token' from both storage pools
+      const token = localStorage.getItem("texify_token") || sessionStorage.getItem("texify_token");
       
       const response = await fetch(`${API_ROOT}/api/resumes/compile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem("token")}`
+          'Authorization': `Bearer ${token}` // Passes the clean production token string
         },
-        credentials: "include",
         body: JSON.stringify({ latexCode: rawLatexString }),
       });
       
