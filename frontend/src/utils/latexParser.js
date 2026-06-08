@@ -123,7 +123,7 @@ ${(data.projects || []).map((proj) => `  \\resumeProjectHeading{\\textbf{${escap
     \\small{\\item{
       ${s.languages ? `\\textbf{Languages}{: ${escapeLatex(s.languages)}} \\\\` : ""}
       ${s.libraries ? `\\textbf{Frameworks \\& Libraries}{: ${escapeLatex(s.libraries)}} \\\\` : ""}
-      ${s.tools ? `\\textbf{Tools \\& Systems}{: ${escapeLatex(s.tools)}}` : ""}
+      ${s.tools ? `\\textbf{Tools \\& Systems}{: ${escapeLatex(s.tools)}} \\\\` : ""}
       ${s.domain ? `\\textbf{Domain Specialization}{: ${escapeLatex(s.domain)}}` : ""}
     }}
 \\end{itemize}
