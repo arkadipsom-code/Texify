@@ -1,8 +1,10 @@
 // src/services/api.js
 
-// Vite checks your environment variables automatically.
-// It will use Render on production, and drop back to your local server when coding at home!
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// 1. Grab the root domain dynamically based on where the code is currently running
+const API_ROOT = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// 2. Append the /api structural route prefix cleanly to both environments
+const BASE_URL = `${API_ROOT}/api`;
 
 export const api = {
   resumes: {
@@ -11,7 +13,7 @@ export const api = {
       const res = await fetch(`${BASE_URL}/resumes`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Essential for forwarding HttpOnly session cookies
+        credentials: "include", // Crucial for passing HttpOnly cookies!
       });
       if (!res.ok) throw new Error(`Fetch failed with status ${res.status}`);
       return res.json();
@@ -49,7 +51,6 @@ export const api = {
       return res.json();
     },
 
-    // Delete a specific resume template draft
     delete: async (id) => {
       const res = await fetch(`${BASE_URL}/resumes/${id}`, {
         method: "DELETE",
