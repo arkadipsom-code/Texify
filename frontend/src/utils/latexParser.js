@@ -20,7 +20,7 @@ const escapeLatex = (text) => {
       .replace(/~/g, "\\textasciitilde{}")
       .replace(/\^/g, "\\textasciicircum{}")
       .replace(/\|/g, "\\textbar{}")
-  ); // Safely sanitize any manual user pipe entries
+  );
 };
 
 /**
@@ -31,9 +31,9 @@ const renderBulletItems = (item) => {
   if (!item) return "";
 
   const rawDesc =
+    item.bullets ||
     item.description ||
     item.desc ||
-    item.bullets ||
     item.points ||
     item.details ||
     "";
@@ -56,6 +56,7 @@ const renderBulletItems = (item) => {
 
 /**
  * Converts dynamic JSON state into a beautifully typeset "Jake's Resume" LaTeX Document.
+ * Fully aligned with your specific location-free Form Wizard inputs.
  */
 export function parseResumeToLaTeX(data) {
   if (!data) return "";
@@ -66,8 +67,8 @@ export function parseResumeToLaTeX(data) {
   const rawName = p.name || "YOUR NAME";
   const uppercaseName = rawName.toString().toUpperCase();
 
-  let latex = `
-\\documentclass[letterpaper,11pt]{article}
+  // Use this pattern for the entire string:
+  let latex = `\\documentclass[letterpaper,11pt]{article}
 
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -87,7 +88,7 @@ export function parseResumeToLaTeX(data) {
 \\renewcommand{\\headrulewidth}{0pt}
 \\renewcommand{\\footrulewidth}{0pt}
 
-% Margins setup matching the gold standard resume geometry
+% Margins setup
 \\addtolength{\\oddsidemargin}{-0.5in}
 \\addtolength{\\evensidemargin}{-0.5in}
 \\addtolength{\\textwidth}{1.0in}
@@ -100,51 +101,10 @@ export function parseResumeToLaTeX(data) {
 \\raggedright
 \\setlength{\\tabcolsep}{0in}
 
-% Section formatting macro - Bold, Large, with crisp divider lines
+% Section formatting
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
-}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
-
-\\pdfgentounicode=1
-
-\\newcommand{\\resumeItem}[1]{
-  \\item\\small{
-    {#1 \\vspace{-2pt}}
-  }
-}
-
-% Dedicated Education Macro (3 Arguments: Institution, Timeline, Degree + Grade)
-\\newcommand{\\resumeEduheading}[3]{
-  \\vspace{-2pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & #2 \\\\
-      \\textit{\\small#3} & \\\\
-    \\end{tabular*}\\vspace{-7pt}
-}
-
-% Experience Macro (3 Arguments: Role/Title, Timeline, Company Name)
-\\newcommand{\\resumeExpheading}[3]{
-  \\vspace{-2pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & #2 \\\\
-      \\textit{\\small#3} & \\\\
-    \\end{tabular*}\\vspace{-7pt}
-}
-
-% Projects Macro (2 Arguments: Title + Tech Stack, Completion Year)
-\\newcommand{\\resumeProjectHeading}[2]{
-    \\vspace{-2pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
-      \\small#1 & #2 \\\\
-    \\end{tabular*}\\vspace{-7pt}
-}
-
-\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
-
-\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
-\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
 \\begin{document}
 
@@ -152,10 +112,10 @@ export function parseResumeToLaTeX(data) {
 \\begin{center}
     \\textbf{\\Huge \\scshape ${escapeLatex(uppercaseName)}} \\\\ \\vspace{1pt}
     \\small 
-    ${p.phone ? `${escapeLatex(p.phone)} \\textbar{} ` : ""}
-    ${p.email ? `\\href{mailto:${p.email}}{\\underline{${escapeLatex(p.email)}}} \\textbar{} ` : ""}
+    ${p.phone ? `${escapeLatex(p.phone)} $|$ ` : ""}
+    ${p.email ? `\\href{mailto:${p.email}}{\\underline{${escapeLatex(p.email)}}} $|$ ` : ""}
     ${p.linkedin ? `\\href{${p.linkedin}}{\\underline{linkedin.com/in/${escapeLatex(p.linkedin.split("/in/")[1] || "linkedin")}}}` : ""}
-    ${p.github ? ` \\textbar{} \\href{${p.github}}{\\underline{github.com/${escapeLatex(p.github.split("/").pop() || "github")}}}` : ""}
+    ${p.github ? ` $|$ \\href{${p.github}}{\\underline{github.com/${escapeLatex(p.github.split("/").pop() || "github")}}}` : ""}
 \\end{center}
 `;
 
@@ -209,7 +169,7 @@ export function parseResumeToLaTeX(data) {
 
       const headingContent =
         `\\textbf{${escapeLatex(titleStr)}}` +
-        (techStr ? ` \\textbar{} \\emph{${escapeLatex(techStr)}}` : "");
+        (techStr ? ` $|$ \\emph{${escapeLatex(techStr)}}` : "");
       latex += `  \\resumeProjectHeading
     {${headingContent}}{${escapeLatex(yearStr)}}\n`;
 
@@ -225,21 +185,25 @@ export function parseResumeToLaTeX(data) {
   // === TECHNICAL SKILLS ===
   if (data.skills) {
     const s = data.skills;
-    latex += `\n\\section{Technical Skills}
+    const hasSkills = s.languages || s.libraries || s.tools || s.domain;
+
+    if (hasSkills) {
+      latex += `\n\\section{Technical Skills}
 \\begin{itemize}[leftmargin=0.15in, label={}]
     \\small{\\item{
-     ${s.languages ? `\\textbf{Languages}{: ${escapeLatex(s.languages)}} \\\\` : ""}
-     ${s.libraries ? `\\textbf{Frameworks \\& Libraries}{: ${escapeLatex(s.libraries)}} \\\\` : ""}
-     ${s.tools ? `\\textbf{Tools \\& Systems}{: ${escapeLatex(s.tools)}} \\\\` : ""}
-     ${s.domain ? `\\textbf{Domain Specializations}{: ${escapeLatex(s.domain)}}` : ""}
+      ${s.languages ? `\\textbf{Languages}{: ${escapeLatex(s.languages)}} \\\\` : ""}
+      ${s.libraries ? `\\textbf{Frameworks \\& Libraries}{: ${escapeLatex(s.libraries)}} \\\\` : ""}
+      ${s.tools ? `\\textbf{Tools \\& Systems}{: ${escapeLatex(s.tools)}} \\\\` : ""}
+      ${s.domain ? `\\textbf{Domain Specializations}{: ${escapeLatex(s.domain)}}` : ""}
     }}
 \\end{itemize}\n`;
+    }
   }
 
   // === AWARDS AND ACHIEVEMENTS ===
-  if (data.achievements) {
+  if (data.achievements && data.achievements.toString().trim()) {
     latex += `\n\\section{Awards \\& Achievements}\n\\resumeItemListStart\n`;
-    latex += renderBulletItems({ description: data.achievements });
+    latex += renderBulletItems({ bullets: data.achievements });
     latex += `\\resumeItemListEnd\n`;
   }
 
