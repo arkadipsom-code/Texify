@@ -12,12 +12,16 @@ const resumeRoutes = require("./routes/resumeRoutes");
 
 const app = express();
 
+// CRUCIAL FOR DEPLOYMENT: Tell Express to trust Render's reverse proxy load balancers.
+// This ensures that 'secure: true' cookies are allowed to pass through over HTTPS.
+app.set("trust proxy", 1);
+
 // Middleware Configuration
 
 // Dynamic CORS Middleware Configuration
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://texify-nine.vercel.app", // Keeps your old link safe just in case
+  "https://texify-nine.vercel.app", // Your live Vercel production frontend
 ];
 
 app.use(
@@ -33,6 +37,8 @@ app.use(
       return callback(null, true);
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   }),
 );
 
