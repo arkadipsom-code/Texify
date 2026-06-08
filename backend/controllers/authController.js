@@ -8,6 +8,7 @@ const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 const TARGET_DOMAIN = "@students.iiests.ac.in";
 
+// Helper logic to sign and push tokens down into an encrypted HttpOnly cookie container
 const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
   const token = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: "24h" });
 
@@ -27,11 +28,6 @@ const sendTokenCookie = (userId, res, statusCode, message, userPayload) => {
     user: userPayload,
   });
 };
-
-return res.status(statusCode).json({
-  message,
-  user: userPayload,
-});
 
 // PASSPORT GOOGLE STRATEGY INITIALIZATION
 
