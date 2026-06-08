@@ -2,38 +2,40 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+// 🚀 DYNAMIC ENDPOINT SYSTEM: Captures Vercel's production variable, or gracefully drops back to localhost
+const API_ROOT = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Verification request to recover session state on refresh (critical for Google OAuth callbacks)
   useEffect(() => {
-  const verifySession = async () => {
-    try {
-      
-      const response = await fetch('http://localhost:5000/api/auth/me', {
-        method: 'GET',
-        credentials: 'include' 
-      });
+    const verifySession = async () => {
+      try {
+        const response = await fetch(`${API_ROOT}/api/auth/me`, {
+          method: 'GET',
+          credentials: 'include' 
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user); 
-      } else {
-        setUser(null); 
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user); 
+        } else {
+          setUser(null); 
+        }
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  verifySession();
-}, []);
+    verifySession();
+  }, []);
 
   const login = async (email, password) => {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch(`${API_ROOT}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -51,7 +53,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (email, password) => {
-    const response = await fetch('http://localhost:5000/api/auth/register', {
+    const response = await fetch(`${API_ROOT}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -70,8 +72,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      
-      await fetch('http://localhost:5000/api/auth/logout', {
+      await fetch(`${API_ROOT}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
