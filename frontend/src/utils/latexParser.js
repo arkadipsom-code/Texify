@@ -203,7 +203,7 @@ export function parseResumeToLaTeX(resumeData) {
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-2pt}}
 
 % Native, safe override to map second-level nested lists to round bullets
 \\renewcommand{\\labelitemii}{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
@@ -212,13 +212,13 @@ export function parseResumeToLaTeX(resumeData) {
 
 ${personalSection}
 ${educationSection}
-\\vspace{-5pt}
+\\vspace{-2pt}
 ${experienceSection}
-\\vspace{-5pt}
+\\vspace{-2pt}
 ${projectsSection}
-\\vspace{-5pt}
+\\vspace{-2pt}
 ${skillsSection}
-\\vspace{-5pt}
+\\vspace{-2pt}
 ${achievementsSection}
 
 \\end{document}`;
