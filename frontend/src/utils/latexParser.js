@@ -23,10 +23,8 @@ const escapeLatex = (text) => {
 };
 
 /**
- * Ironclad parser mapping FormWizard state directly to Jake's Template layout
- * MATCHES EXPECTED EXPORT: parseResumeToLaTeX
- * @param {Object} resumeData - The unified application state object
- * @returns {string} Fully generated, layout-safe LaTeX source code
+ * RESTORED PARSER: Keeps your exact original layout macros intact
+ * while seamlessly forcing round bullets.
  */
 export function parseResumeToLaTeX(resumeData) {
   const { personal, education, experience, projects, skills, achievements } =
@@ -55,11 +53,9 @@ export function parseResumeToLaTeX(resumeData) {
   if (education && education.length > 0) {
     educationSection += `\\section{Education}\n  \\resumeSubHeadingListStart\n`;
     education.forEach((edu) => {
-      const rightHeaderInfo = `${edu.cgpa ? `CGPA: ${edu.cgpa} ` : ""}${edu.year ? `| ${edu.year}` : ""}`;
-      educationSection += `    \\resumeSubheadingCustom
-      {${escapeLatex(edu.institute)}}
-      {${escapeLatex(edu.degree)}}
-      {${escapeLatex(rightHeaderInfo)}}\n`;
+      educationSection += `    \\resumeSubheading
+      {${escapeLatex(edu.institute)}}{${escapeLatex(edu.year || "")}}
+      {${escapeLatex(edu.degree)}}{${edu.cgpa ? `CGPA: ${edu.cgpa}` : ""}}\n`;
     });
     educationSection += `  \\resumeSubHeadingListEnd\n`;
   }
@@ -69,22 +65,20 @@ export function parseResumeToLaTeX(resumeData) {
   if (experience && experience.length > 0) {
     experienceSection += `\\section{Experience}\n  \\resumeSubHeadingListStart\n`;
     experience.forEach((exp) => {
-      experienceSection += `    \\resumeExperienceHeading
-      {${escapeLatex(exp.role)}}
-      {${escapeLatex(exp.company)}}
-      {${escapeLatex(exp.duration)}}\n`;
+      // Restored your exact original 2-line heading macro format
+      experienceSection += `    \\resumeSubheading
+      {${escapeLatex(exp.role)}}{${escapeLatex(exp.duration)}}
+      {${escapeLatex(exp.company)}}{}\n`;
 
       if (exp.bullets) {
-        // Achievement style rendering to guarantee round bullets instead of hyphens
-        experienceSection += `    \\begin{itemize}[leftmargin=0.25in, label={}]\n    \\small{\\item{\n`;
+        experienceSection += `    \\resumeItemListStart\n`;
         exp.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            experienceSection += `     \\textbullet{} ${escapeLatex(bullet.trim())} \\\\\n`;
+            experienceSection += `      \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
           });
-        experienceSection = experienceSection.trim().replace(/\\\\$/, "");
-        experienceSection += `\n    }}\n \\end{itemize}\\vspace{-5pt}\n`;
+        experienceSection += `    \\resumeItemListEnd\n`;
       }
     });
     experienceSection += `  \\resumeSubHeadingListEnd\n`;
@@ -95,21 +89,20 @@ export function parseResumeToLaTeX(resumeData) {
   if (projects && projects.length > 0) {
     projectsSection += `\\section{Projects}\n  \\resumeSubHeadingListStart\n`;
     projects.forEach((proj) => {
+      // Restored your exact original heading format
       const leftHeader = `\\textbf{${escapeLatex(proj.title)}}${proj.techStack ? ` $|$ \\emph{${escapeLatex(proj.techStack)}}` : ""}`;
-      projectsSection += `      \\resumeProjectHeading
-          {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
+      projectsSection += `    \\resumeProjectHeading
+      {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
 
       if (proj.bullets) {
-        // Achievement style rendering to guarantee round bullets instead of hyphens
-        projectsSection += `          \\begin{itemize}[leftmargin=0.25in, label={}]\n    \\small{\\item{\n`;
+        projectsSection += `    \\resumeItemListStart\n`;
         proj.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            projectsSection += `           \\textbullet{} ${escapeLatex(bullet.trim())} \\\\\n`;
+            projectsSection += `      \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
           });
-        projectsSection = projectsSection.trim().replace(/\\\\$/, "");
-        projectsSection += `\n    }}\n \\end{itemize}\\vspace{-5pt}\n`;
+        projectsSection += `    \\resumeItemListEnd\n`;
       }
     });
     projectsSection += `  \\resumeSubHeadingListEnd\n`;
@@ -149,7 +142,7 @@ export function parseResumeToLaTeX(resumeData) {
     achievementsSection += `\n    }}\n \\end{itemize}\n`;
   }
 
-  // --- STABLE BOILERPLATE PREAMBLE ---
+  // --- PRECISE ORIGINAL PREAMBLE BOILERPLATE WITH OVERRIDES ---
   return `\\documentclass[letterpaper,11pt]{article}
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -187,18 +180,17 @@ export function parseResumeToLaTeX(resumeData) {
 
 \\pdfgentounicode=1
 
-\\newcommand{\\resumeSubheadingCustom}[3]{
-  \\vspace{-2pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & #3 \\\\
-      \\textit{\\small#2} & \\\\
-    \\end{tabular*}\\vspace{-7pt}
+\\newcommand{\\resumeItem}[1]{
+  \\item\\small{
+    {#1 \\vspace{-2pt}}
+  }
 }
 
-\\newcommand{\\resumeExperienceHeading}[3]{
+\\newcommand{\\resumeSubheading}[4]{
   \\vspace{-2pt}\\item
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} @ \\textbf{#2} & #3 \\\\
+      \\textbf{#1} & #2 \\\\
+      \\textit{\\small#3} & \\textit{\\small#4} \\\\
     \\end{tabular*}\\vspace{-7pt}
 }
 
@@ -211,6 +203,13 @@ export function parseResumeToLaTeX(resumeData) {
 
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+
+% --- THE ONLY OVERRIDE NEEDED ---
+% This forces LaTeX to use standard round bullets for second-level nested items 
+% without altering any layouts, margins, macros, or headings.
+\\renewcommand{\\labelitemii}{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 
 \\begin{document}
 
