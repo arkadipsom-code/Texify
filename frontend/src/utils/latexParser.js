@@ -24,10 +24,11 @@ const escapeLatex = (text) => {
 
 /**
  * Ironclad parser mapping FormWizard state directly to Jake's Template layout
+ * MATCHES EXPECTED EXPORT: parseResumeToLaTeX
  * @param {Object} resumeData - The unified application state object
  * @returns {string} Fully generated, layout-safe LaTeX source code
  */
-export function generateResumeLatex(resumeData) {
+export function parseResumeToLaTeX(resumeData) {
   const { personal, education, experience, projects, skills, achievements } =
     resumeData;
 
@@ -74,7 +75,7 @@ export function generateResumeLatex(resumeData) {
       {${escapeLatex(exp.duration)}}\n`;
 
       if (exp.bullets) {
-        // USING YOUR EXACT FIXED ACHIEVEMENT METHOD HERE FOR CONSISTENCY
+        // Achievement style rendering to guarantee round bullets instead of hyphens
         experienceSection += `    \\begin{itemize}[leftmargin=0.25in, label={}]\n    \\small{\\item{\n`;
         exp.bullets
           .split("\n")
@@ -99,7 +100,7 @@ export function generateResumeLatex(resumeData) {
           {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
 
       if (proj.bullets) {
-        // USING YOUR EXACT FIXED ACHIEVEMENT METHOD HERE FOR CONSISTENCY
+        // Achievement style rendering to guarantee round bullets instead of hyphens
         projectsSection += `          \\begin{itemize}[leftmargin=0.25in, label={}]\n    \\small{\\item{\n`;
         proj.bullets
           .split("\n")
