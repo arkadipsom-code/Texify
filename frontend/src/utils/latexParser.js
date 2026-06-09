@@ -23,9 +23,9 @@ const escapeLatex = (text) => {
 };
 
 /**
- * Robust parser mapping FormWizard state to an ironclad Jake's Template format
+ * Ironclad parser mapping FormWizard state directly to Jake's Template layout
  * @param {Object} resumeData - The unified application state object
- * @returns {string} Fully generated, bulletproof LaTeX source code
+ * @returns {string} Fully generated, layout-safe LaTeX source code
  */
 export function generateResumeLatex(resumeData) {
   const { personal, education, experience, projects, skills, achievements } =
@@ -74,14 +74,14 @@ export function generateResumeLatex(resumeData) {
       {${escapeLatex(exp.duration)}}\n`;
 
       if (exp.bullets) {
-        experienceSection += `    \\resumeItemListStart\n`;
+        experienceSection += `    \\begin{itemize}[leftmargin=0.25in, label=\\raisebox{0.2ex}{\\tiny$\\bullet$}]\n`;
         exp.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            experienceSection += `      \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
+            experienceSection += `      \\item\\small{${escapeLatex(bullet.trim())}\\vspace{-2pt}}\n`;
           });
-        experienceSection += `    \\resumeItemListEnd\n`;
+        experienceSection += `    \\end{itemize}\\vspace{-5pt}\n`;
       }
     });
     experienceSection += `  \\resumeSubHeadingListEnd\n`;
@@ -97,14 +97,14 @@ export function generateResumeLatex(resumeData) {
           {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
 
       if (proj.bullets) {
-        projectsSection += `          \\resumeItemListStart\n`;
+        projectsSection += `          \\begin{itemize}[leftmargin=0.25in, label=\\raisebox{0.2ex}{\\tiny$\\bullet$}]\n`;
         proj.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            projectsSection += `            \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
+            projectsSection += `            \\item\\small{${escapeLatex(bullet.trim())}\\vspace{-2pt}}\n`;
           });
-        projectsSection += `          \\resumeItemListEnd\n`;
+        projectsSection += `          \\end{itemize}\\vspace{-5pt}\n`;
       }
     });
     projectsSection += `  \\resumeSubHeadingListEnd\n`;
@@ -182,18 +182,12 @@ export function generateResumeLatex(resumeData) {
 
 \\pdfgentounicode=1
 
-\\newcommand{\\resumeItem}[1]{
-  \\item\\small{
-    {#1 \\vspace{-2pt}}
-  }
-}
-
 \\newcommand{\\resumeSubheadingCustom}[3]{
   \\vspace{-2pt}\\item
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & #3 \\\\
       \\textit{\\small#2} & \\\\
-    \\end{tabular*}\\vspace{-7pt}
+    \\end{tabular*}\\vspace{-77pt}\\vspace{70pt}
 }
 
 \\newcommand{\\resumeExperienceHeading}[3]{
@@ -210,16 +204,8 @@ export function generateResumeLatex(resumeData) {
     \\end{tabular*}\\vspace{-7pt}
 }
 
-% Explicitly override globally just in case
-\\renewcommand{\\labelitemi}{\\raisebox{0.2ex}{\\tiny$\\bullet$}}
-\\renewcommand{\\labelitemii}{\\raisebox{0.2ex}{\\tiny$\\bullet$}}
-
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-
-% CRITICAL LAYOUT ADJUSTMENT: This explicitly forces itemize to always render small bullets at any nested level
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.25in, label=\\raisebox{0.2ex}{\\tiny$\\bullet$}]}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 
 \\begin{document}
 
