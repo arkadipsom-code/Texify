@@ -1,19 +1,31 @@
 /**
- * Utility to escape raw text characters that crash the LaTeX compiler engine
+ * Advanced sanitizer to completely safeguard the LaTeX engine from layout breaks
+ * Handling control characters, symbols, unicode smart-quotes, and dashes.
  */
 const escapeLatex = (text) => {
   if (!text) return "";
-  return text
-    .replace(/\\/g, "\\textbackslash{}")
-    .replace(/([&%$#_{}])/g, "\\$1")
-    .replace(/\^/g, "\\textasciicircum{}")
-    .replace(/~/g, "\\textasciitilde{}");
+  return (
+    text
+      // 1. Handle standard copy-pasted smart quotes and uncommon unicode dashes
+      .replace(/[\u2018\u2019]/g, "'") // Smart single quotes -> regular single quote
+      .replace(/[\u201C\u201D]/g, '"') // Smart double quotes -> regular double quote
+      .replace(/[\u2013\u2014]/g, "-") // En-dash and em-dash -> regular hyphen
+
+      // 2. Escape fundamental LaTeX structural characters
+      .replace(/\\/g, "\\textbackslash{}")
+      .replace(/([&%$#_{}])/g, "\\$1")
+      .replace(/\^/g, "\\textasciicircum{}")
+      .replace(/~/g, "\\textasciitilde{}")
+
+      // 3. Clean up common problematic characters in web copy-pasting
+      .replace(/`/g, "'")
+  );
 };
 
 /**
- * Main parser function mapping FormWizard state to Jake's Template format
+ * Robust parser mapping FormWizard state to an ironclad Jake's Template format
  * @param {Object} resumeData - The unified application state object
- * @returns {string} Fully generated, layout-safe LaTeX code
+ * @returns {string} Fully generated, bulletproof LaTeX source code
  */
 export function generateResumeLatex(resumeData) {
   const { personal, education, experience, projects, skills, achievements } =
@@ -28,7 +40,6 @@ export function generateResumeLatex(resumeData) {
     personalSection += ` $|$ \\href{mailto:${personal.email}}{\\underline{${escapeLatex(personal.email)}}}`;
   }
   if (personal.linkedin) {
-    // Strips protocol prefixes cleanly for clean visual presentation anchors
     const cleanLink = personal.linkedin.replace(/^(https?:\/\/)?(www\.)?/, "");
     personalSection += ` $|$ \\href{https://${cleanLink}}{\\underline{${escapeLatex(cleanLink)}}}`;
   }
@@ -43,7 +54,6 @@ export function generateResumeLatex(resumeData) {
   if (education && education.length > 0) {
     educationSection += `\\section{Education}\n  \\resumeSubHeadingListStart\n`;
     education.forEach((edu) => {
-      // Combines CGPA metrics and Timeline layout properties clean onto row 1 right side
       const rightHeaderInfo = `${edu.cgpa ? `CGPA: ${edu.cgpa} ` : ""}${edu.year ? `| ${edu.year}` : ""}`;
       educationSection += `    \\resumeSubheadingCustom
       {${escapeLatex(edu.institute)}}
@@ -82,7 +92,6 @@ export function generateResumeLatex(resumeData) {
   if (projects && projects.length > 0) {
     projectsSection += `\\section{Projects}\n  \\resumeSubHeadingListStart\n`;
     projects.forEach((proj) => {
-      // Maps title and technologies cleanly to look identical to Jake's format
       const leftHeader = `\\textbf{${escapeLatex(proj.title)}}${proj.techStack ? ` $|$ \\emph{${escapeLatex(proj.techStack)}}` : ""}`;
       projectsSection += `      \\resumeProjectHeading
           {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
@@ -117,7 +126,6 @@ export function generateResumeLatex(resumeData) {
     if (skills.domain)
       skillsSection += `     \\textbf{Domain Specializations}{: ${escapeLatex(skills.domain)}} \\\\\n`;
 
-    // Clean trailing backslashes cleanly to prevent parser hiccups
     skillsSection = skillsSection.trim().replace(/\\\\$/, "");
     skillsSection += `\n    }}\n \\end{itemize}\n`;
   }
@@ -125,7 +133,7 @@ export function generateResumeLatex(resumeData) {
   // --- ACHIEVEMENTS SECTION PARSING ---
   let achievementsSection = "";
   if (achievements && achievements.trim()) {
-    achievementsSection += `\\section{Achievements \\& Standings}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\n`;
+    achievementsSection += `\\section{Awards \\& Achievements}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\n`;
     achievements
       .split("\n")
       .filter((line) => line.trim())
@@ -136,7 +144,7 @@ export function generateResumeLatex(resumeData) {
     achievementsSection += `\n    }}\n \\end{itemize}\n`;
   }
 
-  // --- COMPOSING BOILERPLATE PREAMBLE WITH DYNAMIC SEGMENTS ---
+  // --- STABLE BOILERPLATE PREAMBLE ---
   return `\\documentclass[letterpaper,11pt]{article}
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -170,7 +178,7 @@ export function generateResumeLatex(resumeData) {
 
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
-}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
+}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
 
 \\pdfgentounicode=1
 
@@ -202,12 +210,14 @@ export function generateResumeLatex(resumeData) {
     \\end{tabular*}\\vspace{-7pt}
 }
 
-\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
+% FORCE BULLETS CONSISTENTLY FOR BOTH LIST LEVELS
+\\renewcommand{\\labelitemi}{\\raisebox{0.2ex}{\\tiny$\\bullet$}}
+\\renewcommand{\\labelitemii}{\\raisebox{0.2ex}{\\tiny$\\bullet$}}
 
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\nocommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.2in]}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 
 \\begin{document}
 
