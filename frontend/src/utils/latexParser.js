@@ -74,14 +74,16 @@ export function generateResumeLatex(resumeData) {
       {${escapeLatex(exp.duration)}}\n`;
 
       if (exp.bullets) {
-        experienceSection += `    \\begin{itemize}[leftmargin=0.25in, label=\\raisebox{0.2ex}{\\tiny$\\bullet$}]\n`;
+        // USING YOUR EXACT FIXED ACHIEVEMENT METHOD HERE FOR CONSISTENCY
+        experienceSection += `    \\begin{itemize}[leftmargin=0.25in, label={}]\n    \\small{\\item{\n`;
         exp.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            experienceSection += `      \\item\\small{${escapeLatex(bullet.trim())}\\vspace{-2pt}}\n`;
+            experienceSection += `     \\textbullet{} ${escapeLatex(bullet.trim())} \\\\\n`;
           });
-        experienceSection += `    \\end{itemize}\\vspace{-5pt}\n`;
+        experienceSection = experienceSection.trim().replace(/\\\\$/, "");
+        experienceSection += `\n    }}\n \\end{itemize}\\vspace{-5pt}\n`;
       }
     });
     experienceSection += `  \\resumeSubHeadingListEnd\n`;
@@ -97,14 +99,16 @@ export function generateResumeLatex(resumeData) {
           {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
 
       if (proj.bullets) {
-        projectsSection += `          \\begin{itemize}[leftmargin=0.25in, label=\\raisebox{0.2ex}{\\tiny$\\bullet$}]\n`;
+        // USING YOUR EXACT FIXED ACHIEVEMENT METHOD HERE FOR CONSISTENCY
+        projectsSection += `          \\begin{itemize}[leftmargin=0.25in, label={}]\n    \\small{\\item{\n`;
         proj.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            projectsSection += `            \\item\\small{${escapeLatex(bullet.trim())}\\vspace{-2pt}}\n`;
+            projectsSection += `           \\textbullet{} ${escapeLatex(bullet.trim())} \\\\\n`;
           });
-        projectsSection += `          \\end{itemize}\\vspace{-5pt}\n`;
+        projectsSection = projectsSection.trim().replace(/\\\\$/, "");
+        projectsSection += `\n    }}\n \\end{itemize}\\vspace{-5pt}\n`;
       }
     });
     projectsSection += `  \\resumeSubHeadingListEnd\n`;
@@ -187,7 +191,7 @@ export function generateResumeLatex(resumeData) {
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & #3 \\\\
       \\textit{\\small#2} & \\\\
-    \\end{tabular*}\\vspace{-77pt}\\vspace{70pt}
+    \\end{tabular*}\\vspace{-7pt}
 }
 
 \\newcommand{\\resumeExperienceHeading}[3]{
