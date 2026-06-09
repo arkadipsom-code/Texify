@@ -23,8 +23,11 @@ const escapeLatex = (text) => {
 };
 
 /**
- * RESTORED PARSER: Keeps your exact original template layout intact
- * with the section division lines restored.
+ * PERFECT ARCHITECTURAL PARSER
+ * Aligned 100% identically with the provided Overleaf Jake Gutierrez template source.
+ * Keeps exact vertical spacing and section gaps preserved.
+ * @param {Object} resumeData - The unified application state object
+ * @returns {string} Fully generated, exact-layout LaTeX source code
  */
 export function parseResumeToLaTeX(resumeData) {
   const { personal, education, experience, projects, skills, achievements } =
@@ -70,14 +73,14 @@ export function parseResumeToLaTeX(resumeData) {
       {${escapeLatex(exp.company)}}{}\n`;
 
       if (exp.bullets) {
-        experienceSection += `    \\resumeItemListStart\n`;
+        experienceSection += `      \\resumeItemListStart\n`;
         exp.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            experienceSection += `      \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
+            experienceSection += `        \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
           });
-        experienceSection += `    \\resumeItemListEnd\n`;
+        experienceSection += `      \\resumeItemListEnd\n`;
       }
     });
     experienceSection += `  \\resumeSubHeadingListEnd\n`;
@@ -86,24 +89,24 @@ export function parseResumeToLaTeX(resumeData) {
   // --- PROJECTS SECTION PARSING ---
   let projectsSection = "";
   if (projects && projects.length > 0) {
-    projectsSection += `\\section{Projects}\n  \\resumeSubHeadingListStart\n`;
+    projectsSection += `\\section{Projects}\n    \\resumeSubHeadingListStart\n`;
     projects.forEach((proj) => {
       const leftHeader = `\\textbf{${escapeLatex(proj.title)}}${proj.techStack ? ` $|$ \\emph{${escapeLatex(proj.techStack)}}` : ""}`;
-      projectsSection += `    \\resumeProjectHeading
-      {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
+      projectsSection += `      \\resumeProjectHeading
+          {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
 
       if (proj.bullets) {
-        projectsSection += `    \\resumeItemListStart\n`;
+        projectsSection += `          \\resumeItemListStart\n`;
         proj.bullets
           .split("\n")
           .filter((line) => line.trim())
           .forEach((bullet) => {
-            projectsSection += `      \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
+            projectsSection += `            \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
           });
-        projectsSection += `    \\resumeItemListEnd\n`;
+        projectsSection += `          \\resumeItemListEnd\n`;
       }
     });
-    projectsSection += `  \\resumeSubHeadingListEnd\n`;
+    projectsSection += `    \\resumeSubHeadingListEnd\n`;
   }
 
   // --- TECHNICAL SKILLS SECTION PARSING ---
@@ -116,11 +119,11 @@ export function parseResumeToLaTeX(resumeData) {
     if (skills.languages)
       skillsSection += `     \\textbf{Languages}{: ${escapeLatex(skills.languages)}} \\\\\n`;
     if (skills.libraries)
-      skillsSection += `     \\textbf{Frameworks \\& Libraries}{: ${escapeLatex(skills.libraries)}} \\\\\n`;
+      skillsSection += `     \\textbf{Frameworks}{: ${escapeLatex(skills.libraries)}} \\\\\n`;
     if (skills.tools)
-      skillsSection += `     \\textbf{Tools \\& Systems}{: ${escapeLatex(skills.tools)}} \\\\\n`;
+      skillsSection += `     \\textbf{Developer Tools}{: ${escapeLatex(skills.tools)}} \\\\\n`;
     if (skills.domain)
-      skillsSection += `     \\textbf{Domain Specializations}{: ${escapeLatex(skills.domain)}} \\\\\n`;
+      skillsSection += `     \\textbf{Libraries}{: ${escapeLatex(skills.domain)}} \\\\\n`;
 
     skillsSection = skillsSection.trim().replace(/\\\\$/, "");
     skillsSection += `\n    }}\n \\end{itemize}\n`;
@@ -140,8 +143,9 @@ export function parseResumeToLaTeX(resumeData) {
     achievementsSection += `\n    }}\n \\end{itemize}\n`;
   }
 
-  // --- PRECISE ORIGINAL PREAMBLE BOILERPLATE ---
+  // --- EXACT UNTOUCHED JAKE GUTIERREZ OVERLEAF BOILERPLATE ---
   return `\\documentclass[letterpaper,11pt]{article}
+
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
 \\usepackage{titlesec}
@@ -156,11 +160,12 @@ export function parseResumeToLaTeX(resumeData) {
 \\input{glyphtounicode}
 
 \\pagestyle{fancy}
-\\fancyhf{}
+\\fancyhf{} % clear all header and footer fields
 \\fancyfoot{}
 \\renewcommand{\\headrulewidth}{0pt}
 \\renewcommand{\\footrulewidth}{0pt}
 
+% Adjust margins
 \\addtolength{\\oddsidemargin}{-0.5in}
 \\addtolength{\\evensidemargin}{-0.5in}
 \\addtolength{\\textwidth}{1in}
@@ -168,17 +173,21 @@ export function parseResumeToLaTeX(resumeData) {
 \\addtolength{\\textheight}{1.0in}
 
 \\urlstyle{same}
+
 \\raggedbottom
 \\raggedright
 \\setlength{\\tabcolsep}{0in}
 
-% FIXED: Changed \\titrule back to the correct \\titlerule to restore section lines
+% Sections formatting
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
 }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
+% Ensure that generate pdf is machine readable/ATS parsable
 \\pdfgentounicode=1
 
+%-------------------------
+% Custom commands
 \\newcommand{\\resumeItem}[1]{
   \\item\\small{
     {#1 \\vspace{-2pt}}
@@ -189,7 +198,14 @@ export function parseResumeToLaTeX(resumeData) {
   \\vspace{-2pt}\\item
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
       \\textbf{#1} & #2 \\\\
-      \\textit{\\small#3} & \\textit{\\small#4} \\\\
+      \\textit{\\small#3} & \\textit{\\small #4} \\\\
+    \\end{tabular*}\\vspace{-7pt}
+}
+
+\\newcommand{\\resumeSubSubheading}[2]{
+    \\item
+    \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
+      \\textit{\\small#1} & \\textit{\\small #2} \\\\
     \\end{tabular*}\\vspace{-7pt}
 }
 
@@ -200,25 +216,22 @@ export function parseResumeToLaTeX(resumeData) {
     \\end{tabular*}\\vspace{-7pt}
 }
 
+\\newcommand{\\resumeSubItem}[1]{\\resumeItem{#1}\\vspace{-4pt}}
+
+\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
+
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-2pt}}
-
-% Native, safe override to map second-level nested lists to round bullets
-\\renewcommand{\\labelitemii}{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 
 \\begin{document}
 
 ${personalSection}
 ${educationSection}
-\\vspace{-2pt}
 ${experienceSection}
-\\vspace{-2pt}
 ${projectsSection}
-\\vspace{-2pt}
 ${skillsSection}
-\\vspace{-2pt}
 ${achievementsSection}
 
 \\end{document}`;
