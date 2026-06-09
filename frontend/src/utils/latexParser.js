@@ -1,73 +1,168 @@
+/**
+ * Utility to escape raw text characters that crash the LaTeX compiler engine
+ */
 const escapeLatex = (text) => {
   if (!text) return "";
   return text
-    .toString()
     .replace(/\\/g, "\\textbackslash{}")
-    .replace(/&/g, "\\&")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/_/g, "\\_")
-    .replace(/{/g, "\\{")
-    .replace(/}/g, "\\}")
-    .replace(/~/g, "\\textasciitilde{}")
+    .replace(/([&%$#_{}])/g, "\\$1")
     .replace(/\^/g, "\\textasciicircum{}")
-    .replace(/\|/g, "\\textbar{}");
+    .replace(/~/g, "\\textasciitilde{}");
 };
 
-const renderBulletItems = (item) => {
-  const rawDesc =
-    item.bullets ||
-    item.description ||
-    item.desc ||
-    item.points ||
-    item.details ||
-    "";
-  let lines = Array.isArray(rawDesc)
-    ? rawDesc
-    : typeof rawDesc === "string"
-      ? rawDesc.split(/\\n|\n/)
-      : [];
+/**
+ * Main parser function mapping FormWizard state to Jake's Template format
+ * @param {Object} resumeData - The unified application state object
+ * @returns {string} Fully generated, layout-safe LaTeX code
+ */
+export function generateResumeLatex(resumeData) {
+  const { personal, education, experience, projects, skills, achievements } =
+    resumeData;
 
-  return lines
-    .filter((line) => line && line.toString().trim())
-    .map((line) => {
-      // This regex cleans up any existing "-" or "•" to prevent double-bullet issues
-      const cleanLine = line
-        .toString()
-        .trim()
-        .replace(/^[-•]\s*/, "");
-      return `    \\resumeItem{${escapeLatex(cleanLine)}}`;
-    })
-    .join("\n");
-};
+  // --- HEADER SECTION PARSING ---
+  let personalSection = `\\begin{center}
+    \\textbf{\\Huge \\scshape ${escapeLatex(personal.name)}} \\\\ \\vspace{1pt}
+    \\small ${escapeLatex(personal.phone)}`;
 
-export function parseResumeToLaTeX(data) {
-  if (!data) return "";
-  const p = data.personal || {};
-  const s = data.skills || {};
-  const uppercaseName = (p.name || "YOUR NAME").toString().toUpperCase();
+  if (personal.email) {
+    personalSection += ` $|$ \\href{mailto:${personal.email}}{\\underline{${escapeLatex(personal.email)}}}`;
+  }
+  if (personal.linkedin) {
+    // Strips protocol prefixes cleanly for clean visual presentation anchors
+    const cleanLink = personal.linkedin.replace(/^(https?:\/\/)?(www\.)?/, "");
+    personalSection += ` $|$ \\href{https://${cleanLink}}{\\underline{${escapeLatex(cleanLink)}}}`;
+  }
+  if (personal.github) {
+    const cleanGit = personal.github.replace(/^(https?:\/\/)?(www\.)?/, "");
+    personalSection += ` $|$ \\href{https://${cleanGit}}{\\underline{${escapeLatex(cleanGit)}}}`;
+  }
+  personalSection += `\n\\end{center}\n`;
 
+  // --- EDUCATION SECTION PARSING ---
+  let educationSection = "";
+  if (education && education.length > 0) {
+    educationSection += `\\section{Education}\n  \\resumeSubHeadingListStart\n`;
+    education.forEach((edu) => {
+      // Combines CGPA metrics and Timeline layout properties clean onto row 1 right side
+      const rightHeaderInfo = `${edu.cgpa ? `CGPA: ${edu.cgpa} ` : ""}${edu.year ? `| ${edu.year}` : ""}`;
+      educationSection += `    \\resumeSubheadingCustom
+      {${escapeLatex(edu.institute)}}
+      {${escapeLatex(edu.degree)}}
+      {${escapeLatex(rightHeaderInfo)}}\n`;
+    });
+    educationSection += `  \\resumeSubHeadingListEnd\n`;
+  }
+
+  // --- EXPERIENCE SECTION PARSING ---
+  let experienceSection = "";
+  if (experience && experience.length > 0) {
+    experienceSection += `\\section{Experience}\n  \\resumeSubHeadingListStart\n`;
+    experience.forEach((exp) => {
+      experienceSection += `    \\resumeExperienceHeading
+      {${escapeLatex(exp.role)}}
+      {${escapeLatex(exp.company)}}
+      {${escapeLatex(exp.duration)}}\n`;
+
+      if (exp.bullets) {
+        experienceSection += `    \\resumeItemListStart\n`;
+        exp.bullets
+          .split("\n")
+          .filter((line) => line.trim())
+          .forEach((bullet) => {
+            experienceSection += `      \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
+          });
+        experienceSection += `    \\resumeItemListEnd\n`;
+      }
+    });
+    experienceSection += `  \\resumeSubHeadingListEnd\n`;
+  }
+
+  // --- PROJECTS SECTION PARSING ---
+  let projectsSection = "";
+  if (projects && projects.length > 0) {
+    projectsSection += `\\section{Projects}\n  \\resumeSubHeadingListStart\n`;
+    projects.forEach((proj) => {
+      // Maps title and technologies cleanly to look identical to Jake's format
+      const leftHeader = `\\textbf{${escapeLatex(proj.title)}}${proj.techStack ? ` $|$ \\emph{${escapeLatex(proj.techStack)}}` : ""}`;
+      projectsSection += `      \\resumeProjectHeading
+          {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
+
+      if (proj.bullets) {
+        projectsSection += `          \\resumeItemListStart\n`;
+        proj.bullets
+          .split("\n")
+          .filter((line) => line.trim())
+          .forEach((bullet) => {
+            projectsSection += `            \\resumeItem{${escapeLatex(bullet.trim())}}\n`;
+          });
+        projectsSection += `          \\resumeItemListEnd\n`;
+      }
+    });
+    projectsSection += `  \\resumeSubHeadingListEnd\n`;
+  }
+
+  // --- TECHNICAL SKILLS SECTION PARSING ---
+  let skillsSection = "";
+  if (
+    skills &&
+    (skills.languages || skills.libraries || skills.tools || skills.domain)
+  ) {
+    skillsSection += `\\section{Technical Skills}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\n`;
+    if (skills.languages)
+      skillsSection += `     \\textbf{Languages}{: ${escapeLatex(skills.languages)}} \\\\\n`;
+    if (skills.libraries)
+      skillsSection += `     \\textbf{Frameworks \\& Libraries}{: ${escapeLatex(skills.libraries)}} \\\\\n`;
+    if (skills.tools)
+      skillsSection += `     \\textbf{Tools \\& Systems}{: ${escapeLatex(skills.tools)}} \\\\\n`;
+    if (skills.domain)
+      skillsSection += `     \\textbf{Domain Specializations}{: ${escapeLatex(skills.domain)}} \\\\\n`;
+
+    // Clean trailing backslashes cleanly to prevent parser hiccups
+    skillsSection = skillsSection.trim().replace(/\\\\$/, "");
+    skillsSection += `\n    }}\n \\end{itemize}\n`;
+  }
+
+  // --- ACHIEVEMENTS SECTION PARSING ---
+  let achievementsSection = "";
+  if (achievements && achievements.trim()) {
+    achievementsSection += `\\section{Achievements \\& Standings}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\n`;
+    achievements
+      .split("\n")
+      .filter((line) => line.trim())
+      .forEach((line) => {
+        achievementsSection += `     \\textbullet{} ${escapeLatex(line.trim())} \\\\\n`;
+      });
+    achievementsSection = achievementsSection.trim().replace(/\\\\$/, "");
+    achievementsSection += `\n    }}\n \\end{itemize}\n`;
+  }
+
+  // --- COMPOSING BOILERPLATE PREAMBLE WITH DYNAMIC SEGMENTS ---
   return `\\documentclass[letterpaper,11pt]{article}
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
 \\usepackage{titlesec}
 \\usepackage{marvosym}
 \\usepackage[usenames,dvipsnames]{color}
+\\usepackage{verbatim}
 \\usepackage{enumitem}
 \\usepackage[hidelinks]{hyperref}
 \\usepackage{fancyhdr}
+\\usepackage[english]{babel}
 \\usepackage{tabularx}
 \\input{glyphtounicode}
 
 \\pagestyle{fancy}
 \\fancyhf{}
+\\fancyfoot{}
 \\renewcommand{\\headrulewidth}{0pt}
+\\renewcommand{\\footrulewidth}{0pt}
+
 \\addtolength{\\oddsidemargin}{-0.5in}
 \\addtolength{\\evensidemargin}{-0.5in}
-\\addtolength{\\textwidth}{1.0in}
+\\addtolength{\\textwidth}{1in}
 \\addtolength{\\topmargin}{-.5in}
 \\addtolength{\\textheight}{1.0in}
+
 \\urlstyle{same}
 \\raggedbottom
 \\raggedright
@@ -77,58 +172,51 @@ export function parseResumeToLaTeX(data) {
   \\vspace{-4pt}\\scshape\\raggedright\\large
 }{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
-\\newcommand{\\resumeItem}[1]{\\item #1}
-\\newcommand{\\resumeSubheading}[4]{
+\\pdfgentounicode=1
+
+\\newcommand{\\resumeItem}[1]{
+  \\item\\small{
+    {#1 \\vspace{-2pt}}
+  }
+}
+
+\\newcommand{\\resumeSubheadingCustom}[3]{
   \\vspace{-2pt}\\item
     \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & #2 \\\\
-      \\textit{\\small#3} & \\textit{\\small #4} \\\\
-    \\end{tabular*}\\vspace{-7pt}}
+      \\textbf{#1} & #3 \\\\
+      \\textit{\\small#2} & \\\\
+    \\end{tabular*}\\vspace{-7pt}
+}
+
+\\newcommand{\\resumeExperienceHeading}[3]{
+  \\vspace{-2pt}\\item
+    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
+      \\textbf{#1} @ \\textbf{#2} & #3 \\\\
+    \\end{tabular*}\\vspace{-7pt}
+}
 
 \\newcommand{\\resumeProjectHeading}[2]{
-    \\vspace{-2pt}\\item
+    \\item
     \\begin{tabular*}{0.97\\textwidth}{l@{\\extracolsep{\\fill}}r}
       \\small#1 & #2 \\\\
-    \\end{tabular*}\\vspace{-7pt}}
+    \\end{tabular*}\\vspace{-7pt}
+}
+
+\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+\\nocommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 
 \\begin{document}
 
-\\begin{center}
-    \\textbf{\\Huge \\scshape ${escapeLatex(uppercaseName)}} \\\\ \\vspace{1pt}
-    \\small ${p.phone ? `${escapeLatex(p.phone)} $|$ ` : ""}${p.email ? `\\href{mailto:${p.email}}{\\underline{${escapeLatex(p.email)}}} $|$ ` : ""}${p.linkedin ? `\\underline{${escapeLatex(p.linkedin)}} $|$ ` : ""}${p.github ? `\\underline{${escapeLatex(p.github)}}` : ""}
-\\end{center}
-
-\\section{Education}
-\\resumeSubHeadingListStart
-${(data.education || []).map((edu) => `  \\resumeSubheading{${escapeLatex(edu.institute)}}{${escapeLatex(edu.year)}}{${escapeLatex(edu.degree)}}{${escapeLatex(edu.cgpa ? "CGPA: " + edu.cgpa : "")}}`).join("\n")}
-\\resumeSubHeadingListEnd
-
-\\section{Experience}
-\\resumeSubHeadingListStart
-${(data.experience || []).map((exp) => `  \\resumeSubheading{${escapeLatex(exp.role)}}{${escapeLatex(exp.duration)}}{${escapeLatex(exp.company)}}{}\n  \\resumeItemListStart\n${renderBulletItems(exp)}\n  \\resumeItemListEnd`).join("\n")}
-\\resumeSubHeadingListEnd
-
-\\section{Projects}
-\\resumeSubHeadingListStart
-${(data.projects || []).map((proj) => `  \\resumeProjectHeading{\\textbf{${escapeLatex(proj.title)}} $|$ \\emph{${escapeLatex(proj.techStack)}}}{${escapeLatex(proj.timeline)}}\n  \\resumeItemListStart\n${renderBulletItems(proj)}\n  \\resumeItemListEnd`).join("\n")}
-\\resumeSubHeadingListEnd
-
-\\section{Technical Skills}
-\\begin{itemize}[leftmargin=0.15in, label={}]
-    \\small{\\item{
-      ${s.languages ? `\\textbf{Languages}{: ${escapeLatex(s.languages)}} \\\\` : ""}
-      ${s.libraries ? `\\textbf{Frameworks \\& Libraries}{: ${escapeLatex(s.libraries)}} \\\\` : ""}
-      ${s.tools ? `\\textbf{Tools \\& Systems}{: ${escapeLatex(s.tools)}} \\\\` : ""}
-      ${s.domain ? `\\textbf{Domain Specialization}{: ${escapeLatex(s.domain)}}` : ""}
-    }}
-\\end{itemize}
-
-${data.achievements ? `\\section{Awards \\& Achievements}\n\\resumeItemListStart\n${renderBulletItems({ bullets: data.achievements })}\n\\resumeItemListEnd` : ""}
+${personalSection}
+${educationSection}
+${experienceSection}
+${projectsSection}
+${skillsSection}
+${achievementsSection}
 
 \\end{document}`;
 }
