@@ -210,13 +210,15 @@ export function generateResumeLatex(resumeData) {
     \\end{tabular*}\\vspace{-7pt}
 }
 
-% FORCE BULLETS CONSISTENTLY FOR BOTH LIST LEVELS
+% Explicitly override globally just in case
 \\renewcommand{\\labelitemi}{\\raisebox{0.2ex}{\\tiny$\\bullet$}}
 \\renewcommand{\\labelitemii}{\\raisebox{0.2ex}{\\tiny$\\bullet$}}
 
 \\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
 \\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.2in]}
+
+% CRITICAL LAYOUT ADJUSTMENT: This explicitly forces itemize to always render small bullets at any nested level
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}[leftmargin=0.25in, label=\\raisebox{0.2ex}{\\tiny$\\bullet$}]}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 
 \\begin{document}
