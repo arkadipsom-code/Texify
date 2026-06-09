@@ -23,8 +23,8 @@ const escapeLatex = (text) => {
 };
 
 /**
- * RESTORED PARSER: Keeps your exact original layout macros intact
- * while seamlessly forcing round bullets.
+ * RESTORED PARSER: Keeps your exact original template layout intact
+ * with the section division lines restored.
  */
 export function parseResumeToLaTeX(resumeData) {
   const { personal, education, experience, projects, skills, achievements } =
@@ -65,7 +65,6 @@ export function parseResumeToLaTeX(resumeData) {
   if (experience && experience.length > 0) {
     experienceSection += `\\section{Experience}\n  \\resumeSubHeadingListStart\n`;
     experience.forEach((exp) => {
-      // Restored your exact original 2-line heading macro format
       experienceSection += `    \\resumeSubheading
       {${escapeLatex(exp.role)}}{${escapeLatex(exp.duration)}}
       {${escapeLatex(exp.company)}}{}\n`;
@@ -89,7 +88,6 @@ export function parseResumeToLaTeX(resumeData) {
   if (projects && projects.length > 0) {
     projectsSection += `\\section{Projects}\n  \\resumeSubHeadingListStart\n`;
     projects.forEach((proj) => {
-      // Restored your exact original heading format
       const leftHeader = `\\textbf{${escapeLatex(proj.title)}}${proj.techStack ? ` $|$ \\emph{${escapeLatex(proj.techStack)}}` : ""}`;
       projectsSection += `    \\resumeProjectHeading
       {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
@@ -142,7 +140,7 @@ export function parseResumeToLaTeX(resumeData) {
     achievementsSection += `\n    }}\n \\end{itemize}\n`;
   }
 
-  // --- PRECISE ORIGINAL PREAMBLE BOILERPLATE WITH OVERRIDES ---
+  // --- PRECISE ORIGINAL PREAMBLE BOILERPLATE ---
   return `\\documentclass[letterpaper,11pt]{article}
 \\usepackage{latexsym}
 \\usepackage[empty]{fullpage}
@@ -174,9 +172,10 @@ export function parseResumeToLaTeX(resumeData) {
 \\raggedright
 \\setlength{\\tabcolsep}{0in}
 
+% FIXED: Changed \\titrule back to the correct \\titlerule to restore section lines
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
-}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
+}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
 \\pdfgentounicode=1
 
@@ -206,18 +205,20 @@ export function parseResumeToLaTeX(resumeData) {
 \\newcommand{\\resumeItemListStart}{\\begin{itemize}}
 \\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
 
-% --- THE ONLY OVERRIDE NEEDED ---
-% This forces LaTeX to use standard round bullets for second-level nested items 
-% without altering any layouts, margins, macros, or headings.
+% Native, safe override to map second-level nested lists to round bullets
 \\renewcommand{\\labelitemii}{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
 
 \\begin{document}
 
 ${personalSection}
 ${educationSection}
+\\vspace{-5pt}
 ${experienceSection}
+\\vspace{-5pt}
 ${projectsSection}
+\\vspace{-5pt}
 ${skillsSection}
+\\vspace{-5pt}
 ${achievementsSection}
 
 \\end{document}`;
