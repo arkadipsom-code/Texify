@@ -35,18 +35,22 @@ export function parseResumeToLaTeX(resumeData) {
 
   // --- HEADER SECTION PARSING ---
   let personalSection = `\\begin{center}
-    \\textbf{\\Huge \\scshape ${escapeLatex(personal.name)}} \\\\ \\vspace{1pt}
-    \\small ${escapeLatex(personal.phone)}`;
+    \\textbf{\\Huge \\scshape ${escapeLatex(personal.name?.trim())}} \\\\ \\vspace{1pt}
+    \\small ${escapeLatex(personal.phone?.trim())}`;
 
   if (personal.email) {
-    personalSection += ` $|$ \\href{mailto:${personal.email}}{\\underline{${escapeLatex(personal.email)}}}`;
+    personalSection += ` $|$ \\href{mailto:${personal.email.trim()}}{\\underline{${escapeLatex(personal.email.trim())}}}`;
   }
   if (personal.linkedin) {
-    const cleanLink = personal.linkedin.replace(/^(https?:\/\/)?(www\.)?/, "");
+    const cleanLink = personal.linkedin
+      .replace(/^(https?:\/\/)?(www\.)?/, "")
+      .trim();
     personalSection += ` $|$ \\href{https://${cleanLink}}{\\underline{${escapeLatex(cleanLink)}}}`;
   }
   if (personal.github) {
-    const cleanGit = personal.github.replace(/^(https?:\/\/)?(www\.)?/, "");
+    const cleanGit = personal.github
+      .replace(/^(https?:\/\/)?(www\.)?/, "")
+      .trim();
     personalSection += ` $|$ \\href{https://${cleanGit}}{\\underline{${escapeLatex(cleanGit)}}}`;
   }
   personalSection += `\n\\end{center}\n`;
@@ -56,9 +60,15 @@ export function parseResumeToLaTeX(resumeData) {
   if (education && education.length > 0) {
     educationSection += `\\section{Education}\n  \\resumeSubHeadingListStart\n`;
     education.forEach((edu) => {
+      // Safe dynamic optional chaining to protect inputs from crashing if undefined
+      const inst = edu.institute ? edu.institute.trim() : "";
+      const yr = edu.year ? edu.year.trim() : "";
+      const deg = edu.degree ? edu.degree.trim() : "";
+      const gpa = edu.cgpa && edu.cgpa.trim() ? `CGPA: ${edu.cgpa.trim()}` : "";
+
       educationSection += `    \\resumeSubheading
-      {${escapeLatex(edu.institute)}}{${escapeLatex(edu.year || "")}}
-      {${escapeLatex(edu.degree)}}{${edu.cgpa ? `CGPA: ${edu.cgpa}` : ""}}\n`;
+      {${escapeLatex(inst)}}{${escapeLatex(yr)}}
+      {${escapeLatex(deg)}}{${escapeLatex(gpa)}}\n`;
     });
     educationSection += `  \\resumeSubHeadingListEnd\n`;
   }
@@ -68,9 +78,13 @@ export function parseResumeToLaTeX(resumeData) {
   if (experience && experience.length > 0) {
     experienceSection += `\\section{Experience}\n  \\resumeSubHeadingListStart\n`;
     experience.forEach((exp) => {
+      const role = exp.role ? exp.role.trim() : "";
+      const dur = exp.duration ? exp.duration.trim() : "";
+      const comp = exp.company ? exp.company.trim() : "";
+
       experienceSection += `    \\resumeSubheading
-      {${escapeLatex(exp.role)}}{${escapeLatex(exp.duration)}}
-      {${escapeLatex(exp.company)}}{}\n`;
+      {${escapeLatex(role)}}{${escapeLatex(dur)}}
+      {${escapeLatex(comp)}}{}\n`;
 
       if (exp.bullets) {
         experienceSection += `      \\resumeItemListStart\n`;
@@ -91,9 +105,13 @@ export function parseResumeToLaTeX(resumeData) {
   if (projects && projects.length > 0) {
     projectsSection += `\\section{Projects}\n    \\resumeSubHeadingListStart\n`;
     projects.forEach((proj) => {
-      const leftHeader = `\\textbf{${escapeLatex(proj.title)}}${proj.techStack ? ` $|$ \\emph{${escapeLatex(proj.techStack)}}` : ""}`;
+      const title = proj.title ? proj.title.trim() : "";
+      const stack = proj.techStack ? proj.techStack.trim() : "";
+      const timeline = proj.timeline ? proj.timeline.trim() : "";
+
+      const leftHeader = `\\textbf{${escapeLatex(title)}}${stack ? ` $|$ \\emph{${escapeLatex(stack)}}` : ""}`;
       projectsSection += `      \\resumeProjectHeading
-          {${leftHeader}}{${escapeLatex(proj.timeline)}}\n`;
+          {${leftHeader}}{${escapeLatex(timeline)}}\n`;
 
       if (proj.bullets) {
         projectsSection += `          \\resumeItemListStart\n`;
@@ -117,13 +135,13 @@ export function parseResumeToLaTeX(resumeData) {
   ) {
     skillsSection += `\\section{Technical Skills}\n \\begin{itemize}[leftmargin=0.15in, label={}]\n    \\small{\\item{\n`;
     if (skills.languages)
-      skillsSection += `     \\textbf{Languages}{: ${escapeLatex(skills.languages)}} \\\\\n`;
+      skillsSection += `     \\textbf{Languages}{: ${escapeLatex(skills.languages.trim())}} \\\\\n`;
     if (skills.libraries)
-      skillsSection += `     \\textbf{Frameworks}{: ${escapeLatex(skills.libraries)}} \\\\\n`;
+      skillsSection += `     \\textbf{Frameworks and Libraries}{: ${escapeLatex(skills.libraries.trim())}} \\\\\n`;
     if (skills.tools)
-      skillsSection += `     \\textbf{Developer Tools}{: ${escapeLatex(skills.tools)}} \\\\\n`;
+      skillsSection += `     \\textbf{Tools and Platforms}{: ${escapeLatex(skills.tools.trim())}} \\\\\n`;
     if (skills.domain)
-      skillsSection += `     \\textbf{Libraries}{: ${escapeLatex(skills.domain)}} \\\\\n`;
+      skillsSection += `     \\textbf{Domain Knowledge}{: ${escapeLatex(skills.domain.trim())}} \\\\\n`;
 
     skillsSection = skillsSection.trim().replace(/\\\\$/, "");
     skillsSection += `\n    }}\n \\end{itemize}\n`;
