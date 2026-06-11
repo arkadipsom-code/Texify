@@ -158,8 +158,15 @@ const createResume = async (req, res) => {
     if (education && Array.isArray(education)) {
       for (const edu of education) {
         await db.query(
-          "INSERT INTO education (resume_id, institute, year, degree, cgpa) VALUES ($1, $2, $3, $4, $5)",
-          [resumeId, edu.institute, edu.year, edu.degree, edu.cgpa],
+          "INSERT INTO education (resume_id, institute, year, degree, score, score_type) VALUES ($1, $2, $3, $4, $5, $6)",
+          [
+            resumeId,
+            edu.institute,
+            edu.year,
+            edu.degree,
+            edu.score,
+            edu.score_type,
+          ],
         );
       }
     }
@@ -279,8 +286,8 @@ const updateResume = async (req, res) => {
     if (education && Array.isArray(education)) {
       for (const edu of education) {
         await db.query(
-          "INSERT INTO education (resume_id, institute, year, degree, cgpa) VALUES ($1, $2, $3, $4, $5)",
-          [id, edu.institute, edu.year, edu.degree, edu.cgpa],
+          "INSERT INTO education (resume_id, institute, year, degree, score, score_type) VALUES ($1, $2, $3, $4, $5, $6)",
+          [id, edu.institute, edu.year, edu.degree, edu.score, edu.score_type],
         );
       }
     }
