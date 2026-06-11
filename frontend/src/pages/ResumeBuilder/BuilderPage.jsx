@@ -140,8 +140,10 @@ export function BuilderPage() {
     { id: 6, icon: Trophy },
   ];
 
-  return (
-    <div className="min-h-[calc(100vh-64px)] bg-black text-white p-6 md:p-8 flex flex-col lg:flex-row gap-8 w-full max-w-[1800px] mx-auto">
+return (
+    /* MODIFIED: Adjusted tracking heights to handle responsive flow and stop forced stretching */
+    <div className="min-h-[calc(100vh-64px)] bg-black text-white p-6 md:p-8 flex flex-col lg:flex-row items-start gap-8 w-full max-w-[1800px] mx-auto">
+      
       {/* LEFT INPUT PANEL */}
       <div className="w-full lg:w-[45%] flex flex-col gap-6">
         <div className="flex items-center justify-between">
@@ -220,12 +222,13 @@ export function BuilderPage() {
       </div>
 
       {/* RIGHT LIVE PREVIEW SHEET PANEL */}
-<div className="w-full lg:w-[55%] bg-neutral-900/20 text-black rounded-3xl p-6 min-h-[750px] border border-neutral-900 shadow-2xl max-h-[calc(100vh-120px)] flex flex-col">
-  {/* MODIFICATION: Added fixed height metrics, custom styling constraints, and scrolling directly to the white viewport page */}
-  <div className="bg-white rounded-2xl p-8 flex-1 overflow-y-auto max-h-[calc(100vh-170px)] scrollbar-thin scrollbar-thumb-neutral-200">
-    <LivePreview data={resumeData} />
-  </div>
-</div>
+      {/* MODIFIED: Changed max-h dynamically and added standard inline Tailwind scrollbar controls */}
+      <div className="w-full lg:w-[55%] bg-neutral-900/20 text-black rounded-3xl p-6 border border-neutral-900 shadow-2xl lg:sticky lg:top-8 max-h-[calc(100vh-120px)] flex flex-col">
+        <div className="bg-white rounded-2xl p-8 flex-1 overflow-y-auto max-h-[calc(100vh-170px)] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-neutral-200 [&::-webkit-scrollbar-thumb]:rounded-full">
+          <LivePreview data={resumeData} />
+        </div>
+      </div>
+
     </div>
   );
 }
