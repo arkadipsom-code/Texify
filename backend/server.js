@@ -58,6 +58,12 @@ app.get("/", (req, res) => {
   res.json({ message: "Welcome to Texify API! Kitchen is open and ready." });
 });
 
+app.get("/api/health", (req, res) => {
+  res
+    .status(200)
+    .json({ status: "OK", message: "Server is awake and responding!" });
+});
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
