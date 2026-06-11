@@ -26,6 +26,12 @@ export function AuthProvider({ children }) {
         // 2. Extract the working token from localStorage
         const token = localStorage.getItem('texify_token');
 
+        if (!token) {
+          setUser(null);
+          setLoading(false);
+          return; // Exit right here. Do not execute the fetch request below.
+        }
+
         // Set headers conditionally depending on whether a token profile exists
         const headers = { 'Content-Type': 'application/json' };
         if (token) {

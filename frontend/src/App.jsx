@@ -16,7 +16,7 @@ function ProtectedRoute({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-neutral-500 font-mono text-xs">Authenticating route access...</p>
+        <p className="text-neutral-500 text-xs">Authenticating route access...</p>
       </div>
     );
   }
@@ -31,7 +31,7 @@ function AuthRoute({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="text-neutral-500 font-mono text-xs">Verifying authorization parameters...</p>
+        <p className="text-neutral-500 text-xs">Texify Homepage Loading...</p>
       </div>
     );
   }
