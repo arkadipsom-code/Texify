@@ -67,59 +67,83 @@ export function FormWizard({ activeStep, resumeData, setResumeData }) {
       )}
 
       {/* STEP 2: EDUCATION INFO */}
-      {activeStep === 2 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-white mb-0.5">Education Info</h2>
-              <p className="text-xs text-neutral-500">Academic profiles and timelines.</p>
+{activeStep === 2 && (
+  <div>
+    <div className="flex items-center justify-between mb-4">
+      <div>
+        <h2 className="text-lg font-bold text-white mb-0.5">Education Info</h2>
+        <p className="text-xs text-neutral-500">Academic profiles and timelines.</p>
+      </div>
+      <button
+        type="button"
+        
+        onClick={() => setResumeData(prev => ({ ...prev, education: [...prev.education, { institute: '', degree: '', cgpa: '', score_type: 'CGPA', year: '' }] }))}
+        className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800 transition"
+      >
+        + Add Education
+      </button>
+    </div>
+    
+    {resumeData.education.length === 0 ? (
+      <div className="text-center py-12 border border-dashed border-neutral-800 rounded-2xl text-neutral-500 text-xs">No entries. Click "+ Add Education" to populate academics.</div>
+    ) : (
+      <div className="space-y-6 max-h-[360px] overflow-y-auto pr-1">
+        {resumeData.education.map((edu, idx) => (
+          <div key={idx} className="relative p-5 bg-neutral-950 border border-neutral-850 rounded-2xl space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-neutral-900 pb-2">
+              <span className="text-xs font-bold text-neutral-400">Education Entry #{idx + 1}</span>
+              <button type="button" onClick={() => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== idx) }))} className="text-xs text-rose-500 hover:text-rose-400 transition font-medium">Remove</button>
             </div>
-            <button
-              type="button"
-              onClick={() => setResumeData(prev => ({ ...prev, education: [...prev.education, { institute: '', degree: '', cgpa: '', year: '' }] }))}
-              className="px-3 py-1.5 text-xs font-semibold rounded-xl bg-neutral-900 border border-neutral-800 text-white hover:bg-neutral-800 transition"
-            >
-              + Add Item
-            </button>
-          </div>
-          
-          {resumeData.education.length === 0 ? (
-            <div className="text-center py-12 border border-dashed border-neutral-800 rounded-2xl text-neutral-500 text-xs">No entries. Click "+ Add Item" to populate academics.</div>
-          ) : (
-            <div className="space-y-6 max-h-[360px] overflow-y-auto pr-1">
-              {resumeData.education.map((edu, idx) => (
-                <div key={idx} className="relative p-5 bg-neutral-950 border border-neutral-850 rounded-2xl space-y-4 shadow-xl">
-                  <div className="flex items-center justify-between border-b border-neutral-900 pb-2">
-                    <span className="text-xs font-bold text-neutral-400">Education Entry #{idx + 1}</span>
-                    <button type="button" onClick={() => setResumeData(prev => ({ ...prev, education: prev.education.filter((_, i) => i !== idx) }))} className="text-xs text-rose-500 hover:text-rose-400 transition font-medium">Remove</button>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Institute / University</label>
-                    <input type="text" value={edu.institute} onChange={(e) => { const u = [...resumeData.education]; u[idx].institute = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="e.g. IIEST Shibpur" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col">
-                      <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Degree / Course</label>
-                      <input type="text" value={edu.degree} onChange={(e) => { const u = [...resumeData.education]; u[idx].degree = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="B.Tech in Civil Engineering" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">CGPA / Percentage</label>
-                      <input type="text" value={edu.cgpa} onChange={(e) => { const u = [...resumeData.education]; u[idx].cgpa = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="X.XX" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
-                    </div>
-                  </div>
+            
+            <div className="flex flex-col">
+              <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Institute / University</label>
+              <input type="text" value={edu.institute} onChange={(e) => { const u = [...resumeData.education]; u[idx].institute = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="e.g. IIEST Shibpur" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Degree / Course</label>
+                <input type="text" value={edu.degree} onChange={(e) => { const u = [...resumeData.education]; u[idx].degree = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="B.Tech in Civil Engineering" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
+              </div>
 
-                  <div className="flex flex-col">
-                    <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Timeline Duration</label>
-                    <input type="text" value={edu.year} onChange={(e) => { const u = [...resumeData.education]; u[idx].year = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="e.g. Aug 2024 - Present" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
-                  </div>
+              {/* ADDITION/MODIFICATION: Replaced simple input with an inline selector + text input layout */}
+              <div className="flex flex-col">
+                <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Grading System & Score</label>
+                <div className="flex gap-2">
+                  <select 
+                    value={edu.score_type || 'CGPA'} 
+                    onChange={(e) => { 
+                      const u = [...resumeData.education]; 
+                      u[idx].score_type = e.target.value; 
+                      setResumeData(p => ({ ...p, education: u })); 
+                    }}
+                    className="h-11 px-2.5 rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white focus:outline-none cursor-pointer"
+                  >
+                    <option value="CGPA">CGPA</option>
+                    <option value="Percentage">Percentage</option>
+                  </select>
+                  
+                  <input 
+                    type="text" 
+                    value={edu.score} 
+                    onChange={(e) => { const u = [...resumeData.education]; u[idx].score = e.target.value; setResumeData(p => ({ ...p, education: u })); }} 
+                    placeholder={edu.score_type === 'Percentage' ? "e.g. XX.X%" : "e.g. X.XX"} 
+                    className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" 
+                  />
                 </div>
-              ))}
+              </div>
             </div>
-          )}
-        </div>
-      )}
+
+            <div className="flex flex-col">
+              <label className="text-[11px] font-semibold text-neutral-400 mb-1.5">Timeline Duration</label>
+              <input type="text" value={edu.year} onChange={(e) => { const u = [...resumeData.education]; u[idx].year = e.target.value; setResumeData(p => ({ ...p, education: u })); }} placeholder="e.g. Aug 2024 - Present" className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" />
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
       {/* STEP 3: WORK EXPERIENCE */}
       {activeStep === 3 && (

@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS education (
     institute TEXT,
     year VARCHAR(100),
     degree TEXT,
-    cgpa VARCHAR(50)
+    score VARCHAR(50),      
+    score_type VARCHAR(20)
 );
 
 
