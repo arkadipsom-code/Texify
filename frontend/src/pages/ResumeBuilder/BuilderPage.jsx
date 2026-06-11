@@ -220,11 +220,12 @@ export function BuilderPage() {
       </div>
 
       {/* RIGHT LIVE PREVIEW SHEET PANEL */}
-      <div className="w-full lg:w-[55%] bg-neutral-900/20 text-black rounded-3xl p-6 min-h-[750px] border border-neutral-900 shadow-2xl overflow-y-auto max-h-[calc(100vh-120px)] flex flex-col">
-        <div className="bg-white rounded-2xl p-8 flex-1 min-h-full">
-          <LivePreview data={resumeData} />
-        </div>
-      </div>
+<div className="w-full lg:w-[55%] bg-neutral-900/20 text-black rounded-3xl p-6 min-h-[750px] border border-neutral-900 shadow-2xl max-h-[calc(100vh-120px)] flex flex-col">
+  {/* MODIFICATION: Added fixed height metrics, custom styling constraints, and scrolling directly to the white viewport page */}
+  <div className="bg-white rounded-2xl p-8 flex-1 overflow-y-auto max-h-[calc(100vh-170px)] scrollbar-thin scrollbar-thumb-neutral-200">
+    <LivePreview data={resumeData} />
+  </div>
+</div>
     </div>
   );
 }
