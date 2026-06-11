@@ -65,7 +65,6 @@ export function parseResumeToLaTeX(resumeData) {
       const yr = edu.year ? edu.year.trim() : "";
       const deg = edu.degree ? edu.degree.trim() : "";
 
-      // MODIFICATION: Dynamic label matching depending on the system type selected
       let gpa = "";
       if (edu.score && edu.score.trim()) {
         const isPercentage = edu.score_type === "Percentage";
@@ -76,7 +75,7 @@ export function parseResumeToLaTeX(resumeData) {
 
       educationSection += `    \\resumeSubheading
       {${escapeLatex(inst)}}{${escapeLatex(yr)}}
-      {${escapeLatex(deg)}}{${escapeLatex(gpa)}}\n`; // escapeLatex handles the % suffix safely here
+      {${escapeLatex(deg)}}{${escapeLatex(gpa)}}\n`;
     });
     educationSection += `  \\resumeSubHeadingListEnd\n`;
   }
@@ -207,7 +206,7 @@ export function parseResumeToLaTeX(resumeData) {
 % Sections formatting
 \\titleformat{\\section}{
   \\vspace{-4pt}\\scshape\\raggedright\\large
-}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
+}{}{0em}{}[\\color{black}\\titlerule \\vspace{-5pt}]
 
 % Ensure that generate pdf is machine readable/ATS parsable
 \\pdfgentounicode=1
