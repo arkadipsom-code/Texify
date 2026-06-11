@@ -287,7 +287,14 @@ const updateResume = async (req, res) => {
       for (const edu of education) {
         await db.query(
           "INSERT INTO education (resume_id, institute, year, degree, score, score_type) VALUES ($1, $2, $3, $4, $5, $6)",
-          [id, edu.institute, edu.year, edu.degree, edu.score, edu.score_type],
+          [
+            resume_id,
+            edu.institute,
+            edu.year,
+            edu.degree,
+            edu.score,
+            edu.score_type,
+          ],
         );
       }
     }

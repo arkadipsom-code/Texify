@@ -53,25 +53,33 @@ export function LivePreview({ data }) {
           </div>
 
           {/* SECTION: EDUCATION */}
-          {education && education.length > 0 && (
-            <div className="mb-4">
-              <h2 className="text-[11px] font-bold uppercase tracking-wider text-black border-b border-black pb-0.5 mb-1.5 font-sans">Education</h2>
-              <div className="space-y-2">
-                {education.map((edu, idx) => (
-                  <div key={idx} className="flex flex-col gap-0.5">
-                    <div className="flex items-start justify-between font-bold text-neutral-900">
-                      <span>{edu.institute || "Institution Name Placeholder"}</span>
-                      <span className="font-normal text-neutral-700 font-sans text-[10px] shrink-0 ml-4">{edu.year || "Timeline"}</span>
-                    </div>
-                    <div className="flex items-start justify-between text-neutral-700 text-[11px] italic">
-                      <span>{edu.degree || "Degree Specialization"}</span>
-                      {edu.cgpa && <span className="font-sans font-medium text-[10px] not-italic text-black">CGPA: {edu.cgpa}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+{education && education.length > 0 && (
+  <div className="mb-4">
+    <h2 className="text-[11px] font-bold uppercase tracking-wider text-black border-b border-black pb-0.5 mb-1.5 font-sans">Education</h2>
+    <div className="space-y-2">
+      {education.map((edu, idx) => (
+        <div key={idx} className="flex flex-col gap-0.5">
+          <div className="flex items-start justify-between font-bold text-neutral-900">
+            <span>{edu.institute || "Institution Name Placeholder"}</span>
+            <span className="font-normal text-neutral-700 font-sans text-[10px] shrink-0 ml-4">{edu.year || "Timeline"}</span>
+          </div>
+          <div className="flex items-start justify-between text-neutral-700 text-[11px] italic">
+            <span>{edu.degree || "Degree Specialization"}</span>
+            
+            {/* MODIFICATION: Updated to dynamically handle score and score_type */}
+            {edu.score && (
+              <span className="font-sans font-medium text-[10px] not-italic text-black">
+                {edu.score_type === "Percentage" ? "Percentage" : "CGPA"}: {edu.score}
+                {edu.score_type === "Percentage" && "%"}
+              </span>
+            )}
+            
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
           {/* SECTION: EXPERIENCE */}
           {experience && experience.length > 0 && (
