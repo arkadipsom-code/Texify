@@ -127,7 +127,7 @@ export function FormWizard({ activeStep, resumeData, setResumeData }) {
                     type="text" 
                     value={edu.score} 
                     onChange={(e) => { const u = [...resumeData.education]; u[idx].score = e.target.value; setResumeData(p => ({ ...p, education: u })); }} 
-                    placeholder={edu.score_type === 'Percentage' ? "e.g. XX.X%" : "e.g. X.XX"} 
+                    placeholder={edu.score_type === 'Percentage' ? "e.g. XX.X (Please don't include %)" : "e.g. X.XX"} 
                     className="w-full h-11 px-4 text-left rounded-xl bg-neutral-900 border border-neutral-800 text-xs text-white placeholder-neutral-600 focus:outline-none" 
                   />
                 </div>

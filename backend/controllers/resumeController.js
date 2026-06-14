@@ -305,7 +305,7 @@ const updateResume = async (req, res) => {
         await db.query(
           "INSERT INTO experience (resume_id, company, duration, role, description) VALUES ($1, $2, $3, $4, $5)",
           [
-            id,
+            resume_id,
             exp.company,
             exp.duration,
             exp.role,
@@ -321,7 +321,7 @@ const updateResume = async (req, res) => {
         await db.query(
           "INSERT INTO projects (resume_id, title, year, technologies, live_url, repo_url, description) VALUES ($1, $2, $3, $4, $5, $6, $7)",
           [
-            id,
+            resume_id,
             proj.title,
             proj.timeline || proj.year || null,
             proj.techStack || proj.technologies || null,
@@ -338,7 +338,7 @@ const updateResume = async (req, res) => {
       await db.query(
         "INSERT INTO skills (resume_id, languages, libraries, tools, platforms, domain) VALUES ($1, $2, $3, $4, $5, $6)",
         [
-          id,
+          resume_id,
           skills.languages,
           skills.libraries,
           skills.tools,
