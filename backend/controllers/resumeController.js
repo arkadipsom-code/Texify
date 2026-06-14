@@ -282,7 +282,7 @@ const updateResume = async (req, res) => {
       userId,
     ]);
 
-    await db.query("DELETE FROM education WHERE resume_id = $1", [id]);
+    await db.query("DELETE FROM education WHERE resume_id = $1", [resume_id]);
     if (education && Array.isArray(education)) {
       for (const edu of education) {
         await db.query(
@@ -299,7 +299,7 @@ const updateResume = async (req, res) => {
       }
     }
 
-    await db.query("DELETE FROM experience WHERE resume_id = $1", [id]);
+    await db.query("DELETE FROM experience WHERE resume_id = $1", [resume_id]);
     if (experience && Array.isArray(experience)) {
       for (const exp of experience) {
         await db.query(
@@ -315,7 +315,7 @@ const updateResume = async (req, res) => {
       }
     }
 
-    await db.query("DELETE FROM projects WHERE resume_id = $1", [id]);
+    await db.query("DELETE FROM projects WHERE resume_id = $1", [resume_id]);
     if (projects && Array.isArray(projects)) {
       for (const proj of projects) {
         await db.query(
@@ -333,7 +333,7 @@ const updateResume = async (req, res) => {
       }
     }
 
-    await db.query("DELETE FROM skills WHERE resume_id = $1", [id]);
+    await db.query("DELETE FROM skills WHERE resume_id = $1", [resume_id]);
     if (skills) {
       await db.query(
         "INSERT INTO skills (resume_id, languages, libraries, tools, platforms, domain) VALUES ($1, $2, $3, $4, $5, $6)",
@@ -348,13 +348,15 @@ const updateResume = async (req, res) => {
       );
     }
 
-    await db.query("DELETE FROM achievements WHERE resume_id = $1", [id]);
+    await db.query("DELETE FROM achievements WHERE resume_id = $1", [
+      resume_id,
+    ]);
     if (achievements) {
       const contentText =
         typeof achievements === "object" ? achievements.content : achievements;
       await db.query(
         "INSERT INTO achievements (resume_id, content) VALUES ($1, $2)",
-        [id, contentText || null],
+        [resume_id, contentText || null],
       );
     }
 
@@ -385,11 +387,13 @@ const deleteResume = async (req, res) => {
 
     await db.query("BEGIN");
 
-    await db.query("DELETE FROM education WHERE resume_id = $1", [id]);
-    await db.query("DELETE FROM experience WHERE resume_id = $1", [id]);
-    await db.query("DELETE FROM projects WHERE resume_id = $1", [id]);
-    await db.query("DELETE FROM skills WHERE resume_id = $1", [id]);
-    await db.query("DELETE FROM achievements WHERE resume_id = $1", [id]);
+    await db.query("DELETE FROM education WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM experience WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM projects WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM skills WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM achievements WHERE resume_id = $1", [
+      resume_id,
+    ]);
     await db.query("DELETE FROM resumes WHERE id = $1 AND user_id = $2", [
       id,
       userId,
