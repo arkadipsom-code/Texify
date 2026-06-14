@@ -282,30 +282,23 @@ const updateResume = async (req, res) => {
       userId,
     ]);
 
-    await db.query("DELETE FROM education WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM education WHERE resume_id = $1", [id]);
     if (education && Array.isArray(education)) {
       for (const edu of education) {
         await db.query(
           "INSERT INTO education (resume_id, institute, year, degree, score, score_type) VALUES ($1, $2, $3, $4, $5, $6)",
-          [
-            resume_id,
-            edu.institute,
-            edu.year,
-            edu.degree,
-            edu.score,
-            edu.score_type,
-          ],
+          [id, edu.institute, edu.year, edu.degree, edu.score, edu.score_type],
         );
       }
     }
 
-    await db.query("DELETE FROM experience WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM experience WHERE resume_id = $1", [id]);
     if (experience && Array.isArray(experience)) {
       for (const exp of experience) {
         await db.query(
           "INSERT INTO experience (resume_id, company, duration, role, description) VALUES ($1, $2, $3, $4, $5)",
           [
-            resume_id,
+            id,
             exp.company,
             exp.duration,
             exp.role,
@@ -315,13 +308,13 @@ const updateResume = async (req, res) => {
       }
     }
 
-    await db.query("DELETE FROM projects WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM projects WHERE resume_id = $1", [id]);
     if (projects && Array.isArray(projects)) {
       for (const proj of projects) {
         await db.query(
           "INSERT INTO projects (resume_id, title, year, technologies, live_url, repo_url, description) VALUES ($1, $2, $3, $4, $5, $6, $7)",
           [
-            resume_id,
+            id,
             proj.title,
             proj.timeline || proj.year || null,
             proj.techStack || proj.technologies || null,
@@ -333,12 +326,12 @@ const updateResume = async (req, res) => {
       }
     }
 
-    await db.query("DELETE FROM skills WHERE resume_id = $1", [resume_id]);
+    await db.query("DELETE FROM skills WHERE resume_id = $1", [id]);
     if (skills) {
       await db.query(
         "INSERT INTO skills (resume_id, languages, libraries, tools, platforms, domain) VALUES ($1, $2, $3, $4, $5, $6)",
         [
-          resume_id,
+          id,
           skills.languages,
           skills.libraries,
           skills.tools,
@@ -348,15 +341,13 @@ const updateResume = async (req, res) => {
       );
     }
 
-    await db.query("DELETE FROM achievements WHERE resume_id = $1", [
-      resume_id,
-    ]);
+    await db.query("DELETE FROM achievements WHERE resume_id = $1", [id]);
     if (achievements) {
       const contentText =
         typeof achievements === "object" ? achievements.content : achievements;
       await db.query(
         "INSERT INTO achievements (resume_id, content) VALUES ($1, $2)",
-        [resume_id, contentText || null],
+        [id, contentText || null],
       );
     }
 
@@ -364,47 +355,8 @@ const updateResume = async (req, res) => {
     res.status(200).json({ message: "Resume updated successfully!" });
   } catch (err) {
     await db.query("ROLLBACK");
-    console.error(err);
+    console.error("Error during update:", err);
     res.status(500).json({ error: "Failed to update resume." });
-  }
-};
-
-const deleteResume = async (req, res) => {
-  const userId = req.user.id;
-  const { id } = req.params;
-
-  try {
-    const checkResult = await db.query(
-      "SELECT id FROM resumes WHERE id = $1 AND user_id = $2",
-      [id, userId],
-    );
-
-    if (checkResult.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Resume not found or unauthorized." });
-    }
-
-    await db.query("BEGIN");
-
-    await db.query("DELETE FROM education WHERE resume_id = $1", [resume_id]);
-    await db.query("DELETE FROM experience WHERE resume_id = $1", [resume_id]);
-    await db.query("DELETE FROM projects WHERE resume_id = $1", [resume_id]);
-    await db.query("DELETE FROM skills WHERE resume_id = $1", [resume_id]);
-    await db.query("DELETE FROM achievements WHERE resume_id = $1", [
-      resume_id,
-    ]);
-    await db.query("DELETE FROM resumes WHERE id = $1 AND user_id = $2", [
-      id,
-      userId,
-    ]);
-
-    await db.query("COMMIT");
-    res.status(200).json({ message: "Resume completely deleted." });
-  } catch (err) {
-    await db.query("ROLLBACK");
-    console.error(err);
-    res.status(500).json({ error: "Failed to delete resume." });
   }
 };
 
