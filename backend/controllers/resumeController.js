@@ -360,6 +360,35 @@ const updateResume = async (req, res) => {
   }
 };
 
+// Deletion of a resume profile and all associated sub-records via cascading foreign key constraints
+const deleteResume = async (req, res) => {
+  const userId = req.user.id;
+  const { id } = req.params;
+
+  try {
+    const checkResult = await db.query(
+      "SELECT id FROM resumes WHERE id = $1 AND user_id = $2",
+      [id, userId],
+    );
+
+    if (checkResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Resume not found or unauthorized." });
+    }
+
+    await db.query("DELETE FROM resumes WHERE id = $1 AND user_id = $2", [
+      id,
+      userId,
+    ]);
+
+    res.status(200).json({ message: "Resume completely deleted." });
+  } catch (err) {
+    console.error("Error during deletion:", err);
+    res.status(500).json({ error: "Failed to delete resume." });
+  }
+};
+
 // Binary local pdflatex runtime execution and compilation stream
 const compileLatex = (req, res) => {
   const { latexCode } = req.body;
