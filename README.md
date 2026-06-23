@@ -26,7 +26,7 @@ The application splits computational workloads across a decoupled client-server 
 
 ### 2. Authentication & Gateways
 * **Provider:** Google OAuth 2.0
-* **Domain Guardrails:** Formulated with restricted G-Suite routing rules. The application runs strict regex checks at the authentication gateway, restricting application lifecycle access exclusively to valid `@iiest.ac.in` domain credentials.
+* **Domain Guardrails:** Formulated with restricted G-Suite routing rules. The application runs strict regex checks at the authentication gateway, restricting application lifecycle access exclusively to valid `@students.iiest.ac.in` domain credentials.
 
 ### 3. Backend Compilation Engine (Render)
 * **Runtime:** Node.js / Express
