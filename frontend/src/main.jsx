@@ -3,14 +3,13 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 
-// 1. Import inject from the core analytics package
-import { inject } from '@vercel/analytics'
-
-// 2. Initialize Vercel Analytics
-inject()
+// Import the React analytics component
+import { Analytics } from "@vercel/analytics/react"
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
+    {/* Place the Analytics component here so it mounts with your app */}
+    <Analytics />
   </StrictMode>,
 )
